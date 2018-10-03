@@ -1,0 +1,6 @@
+{
+"title" : "Gredwitch's Artillery SWEPs",
+"type" : "vehicle",
+"tags" : ["fun","realism"],
+"ignore" : ["*.psd", "*.ini", "*.svn*"]
+}
