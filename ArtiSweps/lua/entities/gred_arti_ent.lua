@@ -140,7 +140,7 @@ if SERVER then
 					self:SetAngles(curAng - Angle((2/((self.OldShellCount)/70)),0,0))
 				else
 					for _,ply in pairs (player.GetAll()) do
-						if self.ShellType == "gb_rocket_81mm" or self.ShellType == "gb_shell_81mmWP" then
+						if self.ShellType == "gb_shell_81mm" or self.ShellType == "gb_shell_81mmWP" then
 							ply:GetViewEntity():EmitSound("artillery/far/distant_artillery_fire_0"..math.random(1,4)..".wav" )
 						elseif self.ShellType == "gb_rocket_nebel" then
 							ply:GetViewEntity():EmitSound("artillery/far/distant_rocket_artillery_fire_0"..math.random(1,4)..".wav")
