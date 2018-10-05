@@ -11,8 +11,8 @@ SWEP.Contact					= "qhamitouche@gmail.com"
 SWEP.Purpose					= "Destroy the enemy"
 SWEP.Instructions				= "Right ckick to look through the binoculars, left click to call in a strike."
 
-SWEP.PrintName					= "[COALITION]Aoache strike"
-SWEP.strikedalay				= 1
+SWEP.PrintName					= "[COALITION]Apache strike"
+SWEP.strikedalay				= 5
 SWEP.strikeentity     	  		= "wac_base_30mm"
 SWEP.Primary.Ammo				= "Allied radio battery"
 SWEP.Team						= "Coalition"
