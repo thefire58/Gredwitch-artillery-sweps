@@ -20,6 +20,7 @@ SWEP.FireRate					= 0
 
 SWEP.SndLang					= ""
 SWEP.SndAccent                  = 0
+SWEP.CustomAngle				= 50
 
 SWEP.Category					= "Gredwitch's SWEPs"
 SWEP.Author						= "Gredwitch"
@@ -42,6 +43,8 @@ SWEP.HoldType 					= "camera"
 
 SWEP.ViewModelFOV				= 70
 SWEP.WaitGuns					= 10
+SWEP.GunCount					= 1
+SWEP.GunOffset					= 50
 SWEP.ViewModelFlip				= false
 SWEP.ViewModel					= "models/weapons/v_invisib.mdl"
 SWEP.WorldModel					= "models/weapons/w_binos.mdl"
@@ -210,13 +213,18 @@ function SWEP:PrimaryAttack()
 		ArtiStrike.RandomPos			= self.RandomPos
 		ArtiStrike.LoopTimerTime1		= self.LoopTimerTime1
 		ArtiStrike.LoopTimerTime2		= self.LoopTimerTime2
+		
+		ArtiStrike.GunCount				= self.GunCount
+		ArtiStrike.GunOffset			= self.GunOffset
+		ArtiStrike.CustomAngle			= self.CustomAngle
+		ArtiStrike.StrikeType			= self.StrikeType
 		ArtiStrike:Spawn()
 		ArtiStrike:Activate()
 	end
 	
 	if CLIENT then
 		self.Owner:ChatPrint("[GREDWITCH'S SWEPS]"..self.StrikeString.." strike begins in "..(self.strikedalay).." seconds")
-	else
+	else	
 		self.Owner:ChatPrint("[GREDWITCH'S SWEPS]"..self.StrikeString.." strike begins in "..(self.strikedalay).." seconds")
 	end
 end
