@@ -1,0 +1,19 @@
+"VertexlitGeneric"
+{
+
+	"$basetexture" "models/gredwitch/static/a10/V5"
+	"$bumpmap" "models/gredwitch/static/a10/n"
+	"$halflambert" "1"				
+	"$nocull" 1
+                "$alphatest" 0	
+					
+
+	"$phong" "1"						
+	"$phongwarptexture"	"models/gredwitch/static/a10/warp"
+	"$phongboost" "0.5"						
+	"$phongfresnelranges"	"[2 2 8]"	
+
+
+	"$PhongAlbedoTint" "1"		
+
+}

@@ -31,3 +31,5 @@ SWEP.WaitGuns					= 2
 SWEP.SndLang					= "English"
 SWEP.SndAccent                  = 1
 SWEP.PreSound					= "artillery/flyby/typhoon_flyby.ogg"
+SWEP.AircraftModel				= "models/gredwitch/static/typhoon.mdl"
+SWEP.ModelTimer					= 1.5

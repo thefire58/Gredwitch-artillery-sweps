@@ -12,6 +12,7 @@ ENT.Contact			                =	"qhamitouche@gmail.com"
 ENT.Category                        =	"Gredwitch's Stuff"
 
 ENT.Model                         	=	"models/mm1/box.mdl"
+ENT.AircraftModel                  	=	"models/mm1/box.mdl"
 ENT.Delay							=	0
 ENT.ShellType						=   ""
 ENT.StrikeType						=	""
@@ -33,6 +34,7 @@ ENT.bomber							=	nil
 ENT.GunCount						=	1
 ENT.GunOffset						=	0
 ENT.CustomAngle						=	50
+ENT.AutomaticFrameAdvance 			=	true
 
 local ShellSnd = {}
 local RktSnd = {}
@@ -56,6 +58,7 @@ sound.Add( {
 } )
 
 if SERVER then
+
 	function ENT:Initialize() 
 		self.Entity:SetModel(self.Model)
 		self.Entity:PhysicsInit(SOLID_NONE)
@@ -68,6 +71,7 @@ if SERVER then
 		self.OldShellCount = self.ShellCount
 		self:CreateArtillery()
 	end
+	
 	function ENT:Think()
 		local ct = CurTime()
 		if self.ShouldCreateArti then
@@ -207,10 +211,9 @@ if SERVER then
 
 end
 
-
-function ENT:AC130(ct,ang)
-	
+function ENT:AC130(ct,ang)	
 end
+
 function ENT:Apache(ct,ang)
 	if self.Shoot == nil then self.Shoot = 0 end
 	if self.GunTime == nil then self.GunTime = true end
@@ -350,6 +353,19 @@ function ENT:Apache(ct,ang)
 	end
 end
 
+function ENT:OnRemove()
+	if self.bomber then
+		if IsValid(self.bomber) then
+			timer.Simple(self.bomber:SequenceDuration() * self.bomber:GetCycle(), function()
+				if IsValid(self.bomber) then
+					self.bomber:Remove()
+					self.bomber = nil
+				end
+			end)
+		end
+	end
+end
+
 function ENT:CreateArtillery()
 	timer.Simple(self.Delay,function()
 		if not IsValid(self) then return end
@@ -373,6 +389,31 @@ function ENT:CreateArtillery()
 			end
 		end
 		if self.GunRun or self.RocketRun or self.Bomber then
+			if GetConVar("gred_sv_artisweps_aircrafts"):GetInt() == 1 then
+				timer.Simple(self.ModelTimer,function()
+					if IsValid(self) then
+						local bomber = ents.Create("prop_dynamic")
+						bomber:SetModel(self.AircraftModel)
+						bomber:SetPos(self.Pos)
+						bomber.AutomaticFrameAdvance = true
+						bomber:SetAngles(self:GetAngles())
+						bomber:SetMoveType(MOVETYPE_NOCLIP)
+						bomber:Spawn()
+						bomber:Activate()
+						bomber:SetSkin(math.random(0,bomber:SkinCount()))
+						if GetConVar("gred_sv_artisweps_skybox_mdls"):GetInt() == 1 then
+							bomber:SetModelScale(0.16)
+						end
+						local ph = bomber:GetPhysicsObject()
+						if IsValid(ph) then
+							ph:EnableCollisions(false)
+						end
+						bomber:ResetSequence("action")
+						self.bomber = bomber
+						timer.Simple(bomber:SequenceDuration(),function() if IsValid(bomber) then bomber:Remove() end end)
+					end
+				end)
+			end
 			timer.Simple(self.WaitGuns,function()
 				if !IsValid(self) then return end
 				self.ShouldCreateArti = true
@@ -381,25 +422,6 @@ function ENT:CreateArtillery()
 						ply:GetViewEntity():EmitSound("artillery/flyby/p47d_guns.wav")
 					end
 				end
-				--[[
-				local bomber = ents.Create("prop_physics")
-				bomber:SetModel("models/vehicles/plane_he88.mdl")
-				bomber:SetPos(self.Pos+Vector(0,0,1000))
-				bomber:SetAngles(self:GetAngles())
-				bomber:SetMoveType(MOVETYPE_NOCLIP)
-				bomber:Spawn()
-				bomber:Activate()
-				local ph = bomber:GetPhysicsObject()
-				if IsValid(ph) then
-					ph:EnableCollisions(false)
-					ph:EnableGravity(false)
-					ph:Wake()
-					local f = self:GetForward()
-					ph:AddVelocity(f*999999999999)
-				end
-				print(bomber:GetVelocity())
-				bomber:SetModelScale(6)
-				bomber:ResetSequence("action")]]
 				if !self.Bomber then self:SetAngles(self:GetAngles()+Angle(80,0,0)) end
 			end)
 		else

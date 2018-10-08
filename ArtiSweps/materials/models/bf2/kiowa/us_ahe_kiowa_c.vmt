@@ -1,0 +1,6 @@
+"VertexLitGeneric"
+{
+	"$baseTexture" "models/BF2/Kiowa/us_ahe_kiowa_c"
+	"$bumpmap" "models/BF2/Kiowa/us_ahe_kiowa_b"
+
+}

@@ -1,0 +1,26 @@
+"VertexlitGeneric"
+{
+
+	"$basetexture" "models/gredwitch/static/a10/fans"
+	"$bumpmap" "models/gredwitch/static/a10/fans_n"
+	"$halflambert" "1"				
+	"$nocull" 1
+                "$alphatest" 0	
+
+	"$normalmapalphaenvmapmask" 1				
+	"$envmap" "env_cubemap"					
+	"$envmaptint" "[ .01 .01 .01 ]"					
+ 	"$envmapFresnel" "0.5"					
+
+	"$phong" "1"						
+	"$phongexponenttexture" "models/gredwitch/static/a10/fans_w"
+	"$phongboost" "1"						
+	"$phongfresnelranges"	"[2 2 8]"	
+
+	"$PhongAlbedoTint" "1"		
+
+	"$rimlight"     "1"
+	"$rimlightexponent"   "1" 
+	"$rimlightboost"   "1"
+	"$rimmask"      "1"
+}

@@ -34,3 +34,5 @@ SWEP.SndAccent                  = 0
 SWEP.PreSoundName				= "artillery/flyby/a10_strafingrun_0"
 SWEP.PreSndPossibilities		= 6
 SWEP.PreSndFormat				= ".ogg"
+SWEP.AircraftModel				= "models/gredwitch/static/a10.mdl"
+SWEP.ModelTimer					= 3

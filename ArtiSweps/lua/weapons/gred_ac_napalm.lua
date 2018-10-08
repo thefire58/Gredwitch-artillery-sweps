@@ -26,5 +26,7 @@ SWEP.SndFormat					= ".ogg"
 
 SWEP.SndLang					= "English"
 SWEP.SndAccent                  = 0
-SWEP.WaitGuns					= 12
+SWEP.WaitGuns					= 14
 SWEP.PreSound					= "artillery/flyby/f4_napalm.ogg"
+SWEP.AircraftModel				= "models/gredwitch/static/f4.mdl"
+SWEP.ModelTimer					= 10

@@ -27,3 +27,4 @@ SWEP.SndFormat					= ".ogg"
 SWEP.SndLang					= "English"
 SWEP.SndAccent                  = 0
 SWEP.PreSound					= "artillery/flyby/bomber_carpetbomb_flyover.ogg"
+SWEP.AircraftModel				= "models/gredwitch/static/b17.mdl"

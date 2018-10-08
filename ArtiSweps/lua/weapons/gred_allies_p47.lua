@@ -31,3 +31,5 @@ SWEP.WaitGuns					= 2
 SWEP.SndLang					= "English"
 SWEP.SndAccent                  = 0
 SWEP.PreSound					= "artillery/flyby/p47d_flyby.ogg"
+SWEP.AircraftModel				= "models/gredwitch/static/p47.mdl"
+SWEP.ModelTimer					= 1.5

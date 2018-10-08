@@ -20,6 +20,7 @@ SWEP.FireRate					= 0
 
 SWEP.SndLang					= ""
 SWEP.SndAccent                  = 0
+SWEP.ModelTimer                 = 0
 SWEP.CustomAngle				= 50
 
 SWEP.Category					= "Gredwitch's SWEPs"
@@ -72,6 +73,7 @@ SWEP.Secondary.UseElcan			= false
 SWEP.Secondary.UseGreenDuplex	= false	
 SWEP.GunRun						= false
 SWEP.GunSnd						= ""
+SWEP.AircraftModel				= "models/mm1/box.mdl"
 
 SWEP.data 						= {}
 SWEP.data.ironsights			= 1
@@ -172,9 +174,9 @@ function SWEP:PrimaryAttack()
 		
 		local spawnpos
 		if traceRes.Hit then
-			spawnpos = traceRes.HitPos - Vector(0,0,64) + Vector(0,0,GetConVar("gred_sv_arti_spawnaltitude"):GetInt())
+			spawnpos = traceRes.HitPos - Vector(0,0,64) + Vector(0,0,GetConVar("gred_sv_artisweps_spawnaltitude"):GetInt())
 		else
-			spawnpos = hitpos + Vector(0,0,GetConVar("gred_sv_arti_spawnaltitude"):GetInt())
+			spawnpos = hitpos + Vector(0,0,GetConVar("gred_sv_artisweps_spawnaltitude"):GetInt())
 		end
 		if !util.IsInWorld(spawnpos) then
 			if self.Team == "Allies" or self.Team == "Coalition" then
@@ -218,6 +220,8 @@ function SWEP:PrimaryAttack()
 		ArtiStrike.GunOffset			= self.GunOffset
 		ArtiStrike.CustomAngle			= self.CustomAngle
 		ArtiStrike.StrikeType			= self.StrikeType
+		ArtiStrike.AircraftModel		= self.AircraftModel
+		ArtiStrike.ModelTimer			= self.ModelTimer
 		ArtiStrike:Spawn()
 		ArtiStrike:Activate()
 	end

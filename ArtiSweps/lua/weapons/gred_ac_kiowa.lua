@@ -35,3 +35,5 @@ SWEP.SndLang					= "English"
 SWEP.SndAccent                  = 0
 
 SWEP.PreSound					= "artillery/flyby/ah6_flyby_guns.wav"
+SWEP.AircraftModel				= "models/gredwitch/static/kiowa.mdl"
+SWEP.ModelTimer					= 3
