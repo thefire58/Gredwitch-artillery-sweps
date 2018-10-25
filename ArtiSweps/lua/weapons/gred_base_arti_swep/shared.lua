@@ -16,7 +16,7 @@ SWEP.Smoke						= false
 SWEP.RandomPos					= 0
 SWEP.LoopTimerTime1				= 0
 SWEP.LoopTimerTime2				= 0
-SWEP.FireRate					= 0
+SWEP.FireRate					= 200
 
 SWEP.SndLang					= ""
 SWEP.SndAccent                  = 0
@@ -111,124 +111,89 @@ SWEP.ViewModelBoneMods = {
 SWEP.VElements = {
 	["binos"] = { type = "Model", model = "models/weapons/binos.mdl", bone = "r-thumb-low", rel = "", pos = Vector(3.907, -0.109, -1.125), angle = Angle(-2.829, 27.281, 105.791), size = Vector(0.5, 0.5, 0.5), color = Color(255, 255, 255, 255), surpresslightning = false, material = "", skin = 0, bodygroup = {} }
 }
---[[
-local AxisRadioSndArti    = {}
-local AxisRadioSndSmoke   = {}
-local AxisRadioSndBomb    = {}
-local AxisRadioSndStuka   = {}
-local AlliedRadioSndArti  = {}
-local AlliedRadioSndSmoke = {}
-local AlliedRadioSndBomb  = {}
-local AlliedRadioSndWP	  = {}
-for i = 1,5 do
-    AxisRadioSndArti[i] 	= "radio/axis/artillerybegin".. i..".ogg"
-    AxisRadioSndSmoke[i] 	= "radio/axis/artillerybeginsmoke".. i..".ogg"
-    AxisRadioSndBomb[i] 	= "radio/axis/carpetbombbegin".. i..".ogg"
-    AxisRadioSndStuka[i] 	= "radio/axis/stukadivebegin".. i..".ogg"
-    
-    AlliedRadioSndArti[i] 	= "radio/allied/artillerybegin".. i..".ogg"
-    AlliedRadioSndSmoke[i] 	= "radio/allied/artillerybeginsmoke".. i..".ogg"
-    AlliedRadioSndBomb[i] 	= "radio/allied/carpetbombbegin".. i..".ogg"
-    AlliedRadioSndWP[i] 	= "radio/allied/incendiaryartillerybegin".. i..".ogg"
-end
-AlliedRadioSndArti[6] 		= "radio/allied/artillerybegin6.ogg"
---]]
+
 function SWEP:PrimaryAttack()
 	if !self:CanPrimaryAttack() then return end
-	self.Weapon:EmitSound(self.SoundName..(math.random(1,self.SndPossibilities))..self.SndFormat)
-	if SERVER then
-		--[[
-		local radsnd = ""
-		local i = ""
-		local k = ""
-		if self.SndLang == "German" then 
-			i = "Axis"
-		elseif self.SndLang == "English" then
-			i = "Allied"
-		end
-		if self.Bomber then 
-			k = "Bomb"
-		elseif self.Smoke then 
-			k = "Smoke"
-		else 
-			if self.Accent == 1 then k = "WP" else k = "Arti" end
-		end
-		local s = i.."RadioSnd"..k
-		local snd = string.ToTable(s)
-		radsnd = table.Random(snd)
-		self.Weapon:EmitSound(radsnd)
-		--]]
-		
-		local PlayerPos = self.Owner:GetShootPos()
-		local PlayerAng = self.Owner:GetAimVector()
-		
-		local trace = {}
-		trace.start = PlayerPos + PlayerAng*16
-		trace.endpos = PlayerPos + PlayerAng*65536
-		trace.filter = {self.Owner}
-		local hitpos = util.TraceLine(trace).HitPos
-			
-		trace.start = hitpos + Vector(0,math.random(-1000,1000),2048)
-		trace.endpos = trace.start + Vector(0,math.random(-1000,1000),6144)
-		local traceRes = util.TraceLine(trace)
-		
-		local spawnpos
-		if traceRes.Hit then
-			spawnpos = traceRes.HitPos - Vector(0,0,64) + Vector(0,0,GetConVar("gred_sv_artisweps_spawnaltitude"):GetInt())
-		else
-			spawnpos = hitpos + Vector(0,0,GetConVar("gred_sv_artisweps_spawnaltitude"):GetInt())
-		end
-		if !util.IsInWorld(spawnpos) then
-			if self.Team == "Allies" or self.Team == "Coalition" then
-				if self.GunRun or self.Bomber then
-					self.Weapon:EmitSound("radio/allied/airsupportnotvalidtarget"..math.random(1,6))
+	local PlayerPos = self.Owner:GetEyeTrace().HitPos
+	local trace = {}
+	trace.start = PlayerPos
+	trace.endpos = PlayerPos + Vector(0,0,GetConVar("gred_sv_artisweps_spawnaltitude"):GetInt())
+	trace.filter = {self.Owner}
+	tr = util.TraceLine(trace)
+	if tr.Hit and !tr.HitSky then
+		if self.GunRun or self.RocketRun or self.Bomber or self.StrikeString == "Air" then
+			if self.SndLang == "English" then
+				if self.SndAccent == 1 then
+					self.Weapon:EmitSound("radio/allied/british/airsupportnotvalidtarget"..math.random(1,5)..".ogg")
 				else
-					self.Weapon:EmitSound("radio/allied/artillerynotvalidtarget"..math.random(1,5))
+					self.Weapon:EmitSound("radio/allied/american/airsupportnotvalidtarget"..math.random(1,5)..".ogg")
 				end
+			else
+				self.Weapon:EmitSound("radio/axis/airsupportnotvalidtarget"..math.random(1,5)..".ogg")
 			end
-		return else end
-		self:TakePrimaryAmmo(1)
-		self.Weapon:SendWeaponAnim(ACT_VM_PRIMARYATTACK)
-		
-		local ArtiStrike = ents.Create("gred_arti_ent")
-		ArtiStrike:SetPos(spawnpos)
-		ArtiStrike:SetAngles(ArtiStrike:GetAngles() + Angle(0,self.Owner:EyeAngles().y,0))
-		
-		ArtiStrike.ShellType			= self.strikeentity
-		ArtiStrike.Delay	    		= self.strikedalay
-		ArtiStrike.ShellCount			= self.ShellCount
-		ArtiStrike.Owner				= self.Owner
-		ArtiStrike.Team					= self.Team
-		ArtiStrike.StrikeString 		= self.StrikeString
-		ArtiStrike.WaitGuns				= self.WaitGuns
-		ArtiStrike.PreSound				= self.PreSound
-		ArtiStrike.PreSoundName			= self.PreSoundName
-		ArtiStrike.PreSndFormat			= self.PreSndFormat
-		ArtiStrike.PreSndPossibilities	= self.PreSndPossibilities
-		ArtiStrike.Bomber				= self.Bomber
-		
-		ArtiStrike.GunRun				= self.GunRun
-		ArtiStrike.RocketRun			= self.RocketRun
-		ArtiStrike.FireRate				= self.FireRate
-		
-		ArtiStrike.Smoke				= self.Smoke
-		ArtiStrike.RandomPos			= self.RandomPos
-		ArtiStrike.LoopTimerTime1		= self.LoopTimerTime1
-		ArtiStrike.LoopTimerTime2		= self.LoopTimerTime2
-		
-		ArtiStrike.GunCount				= self.GunCount
-		ArtiStrike.GunOffset			= self.GunOffset
-		ArtiStrike.CustomAngle			= self.CustomAngle
-		ArtiStrike.StrikeType			= self.StrikeType
-		ArtiStrike.AircraftModel		= self.AircraftModel
-		ArtiStrike.ModelTimer			= self.ModelTimer
-		ArtiStrike:Spawn()
-		ArtiStrike:Activate()
-	end
-	
-	if CLIENT then
-		self.Owner:ChatPrint("[GREDWITCH'S SWEPS]"..self.StrikeString.." strike begins in "..(self.strikedalay).." seconds")
-	else	
-		self.Owner:ChatPrint("[GREDWITCH'S SWEPS]"..self.StrikeString.." strike begins in "..(self.strikedalay).." seconds")
+		else
+			if self.SndLang == "English" then
+				if self.SndAccent == 1 then
+					if self.StrikeString == "Chemical mortar" then 
+						self.Weapon:EmitSound("radio/allied/british/gasartillerynotvalidtarget"..math.random(1,5)..".ogg")
+					else
+						self.Weapon:EmitSound("radio/allied/british/artillerynotvalidtarget"..math.random(1,5)..".ogg")
+					end
+				else
+					self.Weapon:EmitSound("radio/allied/american/artillerynotvalidtarget"..math.random(1,5)..".ogg")
+				end
+			else
+				self.Weapon:EmitSound("radio/axis/artillerynotvalidtarget"..math.random(1,5)..".ogg")
+			end
+		end
+		if CLIENT then
+			self.Owner:ChatPrint("[GREDWITCH'S SWEPS]Bad target! Don't aim inside buildings")
+		end
+	else
+		self.Weapon:EmitSound(self.SoundName..(math.random(1,self.SndPossibilities))..self.SndFormat)
+		if SERVER then
+			net.Start("gred_net_message_ply")
+				net.WriteEntity(self.Owner)
+				net.WriteString("[GREDWITCH'S SWEPS]"..self.StrikeString.." strike begins in "..(self.strikedalay).." seconds")
+			net.Send(self.Owner)
+			self:TakePrimaryAmmo(1)
+			self.Weapon:SendWeaponAnim(ACT_VM_PRIMARYATTACK)
+			
+			local ArtiStrike = ents.Create("gred_arti_ent")
+			ArtiStrike:SetPos(tr.HitPos)
+			ArtiStrike:SetAngles(ArtiStrike:GetAngles() + Angle(0,self.Owner:EyeAngles().y,0))
+			
+			ArtiStrike.PlyPos				= PlayerPos
+			ArtiStrike.ShellType			= self.strikeentity
+			ArtiStrike.Delay	    		= self.strikedalay
+			ArtiStrike.ShellCount			= self.ShellCount
+			ArtiStrike.Owner				= self.Owner
+			ArtiStrike.Team					= self.Team
+			ArtiStrike.StrikeString 		= self.StrikeString
+			ArtiStrike.WaitGuns				= self.WaitGuns
+			ArtiStrike.PreSound				= self.PreSound
+			ArtiStrike.PreSoundName			= self.PreSoundName
+			ArtiStrike.PreSndFormat			= self.PreSndFormat
+			ArtiStrike.PreSndPossibilities	= self.PreSndPossibilities
+			ArtiStrike.Bomber				= self.Bomber
+			
+			ArtiStrike.GunRun				= self.GunRun
+			ArtiStrike.RocketRun			= self.RocketRun
+			ArtiStrike.FireRate				= self.FireRate
+			
+			ArtiStrike.Smoke				= self.Smoke
+			ArtiStrike.RandomPos			= self.RandomPos
+			ArtiStrike.LoopTimerTime1		= self.LoopTimerTime1
+			ArtiStrike.LoopTimerTime2		= self.LoopTimerTime2
+			
+			ArtiStrike.GunCount				= self.GunCount
+			ArtiStrike.GunOffset			= self.GunOffset
+			ArtiStrike.CustomAngle			= self.CustomAngle
+			ArtiStrike.StrikeType			= self.StrikeType
+			ArtiStrike.AircraftModel		= self.AircraftModel
+			ArtiStrike.ModelTimer			= self.ModelTimer
+			ArtiStrike:Spawn()
+			ArtiStrike:Activate()
+		end
 	end
 end
