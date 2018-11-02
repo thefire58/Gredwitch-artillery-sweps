@@ -117,7 +117,7 @@ function SWEP:PrimaryAttack()
 	local PlayerPos = self.Owner:GetEyeTrace().HitPos
 	local trace = {}
 	trace.start = PlayerPos
-	trace.endpos = PlayerPos + Vector(0,0,GetConVar("gred_sv_artisweps_spawnaltitude"):GetInt())
+	trace.endpos = PlayerPos + Vector(0,0,1000)
 	trace.filter = {self.Owner}
 	tr = util.TraceLine(trace)
 	if tr.Hit and !tr.HitSky then

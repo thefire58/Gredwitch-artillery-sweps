@@ -61,6 +61,7 @@ sound.Add( {
 
 if SERVER then
 
+	local reachSky = Vector(0,0,9999999999)
 	function ENT:Initialize() 
 		self.Entity:SetModel(self.Model)
 		self.Entity:PhysicsInit(SOLID_NONE)
@@ -77,7 +78,7 @@ if SERVER then
 	
 	function ENT:Think()
 		local ct = CurTime()
-		if self.ShouldCreateArti and SERVER then
+		if self.ShouldCreateArti then
 			if self.NextShell < ct then
 				local curAng = self:GetAngles()
 				if self.StrikeType then
@@ -88,22 +89,63 @@ if SERVER then
 					end
 				else
 					if self.Bomber then
-						bpos = self.Pos + self:GetForward()*600
+					
+						if !IsValid(self) then return end
+						local bpos = self.Pos + self:GetForward()*600
 						if !util.IsInWorld(bpos) then return end
-						self.Bomb = ents.Create(self.ShellType)
-						self.Bomb:SetPos(bpos)
-						if self.StrikeString == "Stuka" then self.Bomb:SetAngles(Angle(90,0,0)) end
-						self.Bomb.IsOnPlane = true
-						self.Bomb:SetAngles(curAng)
-						self.Bomb.Owner = self.Owner
-						self.Bomb.GBOWNER = self.Owner
-						self.Bomb:Spawn()
-						self.Bomb:Activate()
-						self.Bomb:EmitSound(table.Random(BmbSnd), 140, 100, 1)				
-						self.Bomb:Arm()
+						local HitBPos = Vector(0,0,
+						util.QuickTrace(bpos,bpos - reachSky,{self} ).HitPos.z)
+						local zpos = Vector(0,0,bpos.z)
+						local dist = HitBPos:Distance(zpos)
+						
+						------------------
+						
+						local snd = table.Random(BmbSnd)
+						local sndDuration = SoundDuration(snd)
+						
+						local time = (dist/-1000)+(sndDuration-0.2) -- Calculates when to play the whistle sound
+						local time = 1
+						local b = ents.Create(self.ShellType)
+						if time < 0 then
+							b:SetPos(bpos)
+							if self.StrikeString == "Stuka" then b:SetAngles(Angle(90,0,0)) end
+							b.IsOnPlane = true
+							b.Owner = self.Owner
+							b.GBOWNER = self.Owner
+							b:Spawn()
+							b:Activate()
+							b.PhysicsUpdate = function(data,phys)
+								phys:SetVelocityInstantaneous(Vector(0,0,-1000))
+							end
+							b:Arm()
+							timer.Simple(-time,function()
+								if !IsValid(b) then return end
+								b:EmitSound(snd, 140, 100, 1)
+							end)
+						else
+							self:EmitSound(snd,140,100,1)
+							timer.Simple(time,function()
+								b:SetPos(bpos)
+								if self.StrikeString == "Stuka" then b:SetAngles(Angle(90,0,0)) end
+								b.IsOnPlane = true
+								b:SetAngles(curAng)
+								if IsValid(self) then
+									b.Owner = self.Owner
+									b.GBOWNER = self.Owner
+								end
+								b:Spawn()
+								b:Activate()
+								b.PhysicsUpdate = function(data,phys)
+									phys:SetVelocityInstantaneous(Vector(0,0,-1000))
+								end
+								b:Arm()
+							end)
+						end
+						
 						self:SetPos(bpos)
 						self.Pos = bpos
 						self.NextShell = ct + 0.25
+						
 					elseif self.GunRun and self.StrikeType != "Apache" then
 						if self.ShellType == "wac_base_7mm" then
 							num = 0.2
@@ -181,11 +223,23 @@ if SERVER then
 						timer.Simple(math.random(self.LoopTimerTime1,self.LoopTimerTime2),function()
 							if not IsValid(self) then return end
 							-- 1.9s = 1000u
-							local bpos = self.Pos + Vector(math.random(-self.RandomPos,self.RandomPos),math.random(-self.RandomPos,self.RandomPos),0)
-							if !util.IsInWorld(bpos) then return end
-							local zpos = Vector(0,0,bpos.z) -- Our spawn altitude
-							local plypos = Vector(0,0,bpos.z-(self.Pos.z-self.PlyPos.z)) -- Should be 1000
-							local dist = zpos:Distance(util.QuickTrace(zpos,plypos).HitPos)
+							-------------------
+							
+							local BPos = self.Pos + 
+							Vector(math.random(-self.RandomPos,self.RandomPos),
+							math.random(-self.RandomPos,self.RandomPos),-1) -- Creates our spawn position
+							while !util.IsInWorld(BPos) do
+								BPos = self.Pos + 
+								Vector(math.random(-self.RandomPos,self.RandomPos),
+								math.random(-self.RandomPos,self.RandomPos),-1) -- re-ceates our spawn position
+							end
+							local HitBPos = Vector(0,0,
+							util.QuickTrace(BPos,BPos - reachSky,{self} ).HitPos.z) -- Defines the ground's pos
+							local zpos = Vector(0,0,BPos.z) -- The exact spawn altitude
+							local dist = HitBPos:Distance(zpos) -- Calculates the distance between our spawn altitude and the ground
+							
+							----------------------
+							
 							local snd
 							if self.IsMortar then
 								snd = table.Random(MortarShellSnd)
@@ -196,50 +250,49 @@ if SERVER then
 									snd = table.Random(RktSnd)
 								end
 							end
-							local time = ((SoundDuration(snd)/plypos.z)*dist)*SoundDuration(snd)
-							if time > 0 then
-								if !IsValid(self) then return end
-								self.Shell = ents.Create(self.ShellType)
-								self.Shell:SetPos(bpos)
-								self.Shell:SetAngles(Angle(90,0,0))
-								self.Shell.Owner = self.Owner
-								self.Shell.GBOWNER = self.Owner
-								self.Shell.IsOnPlane = true
-								self.Shell:Spawn()
-								self.Shell:Activate()
-								if self.Smoke then
-									self.Shell.Effect = "doi_smoke_artillery"
-									self.Shell.EffectAir = "doi_smoke_artillery"
-									self.Shell.Smoke = true
-									self.Shell.RSound = 1
-									self.Shell.ExplosionSound = table.Random(SmokeSounds)
-									self.Shell.WaterExplosionSound = table.Random(SmokeSounds)
+							local sndDuration = SoundDuration(snd)
+							
+							local b=ents.Create(self.ShellType)
+							local time = (dist/-1000)+(sndDuration-0.2) -- Calculates when to play the whistle sound
+							if time < 0 then
+								b:SetPos(BPos)
+								b:SetAngles(Angle(90,0,0))
+								b:SetOwner(self.Shooter)
+								b.IsOnPlane = true
+								if ammo == "Smoke" then
+									b.Smoke = true
 								end
-								self.Shell:Arm()
-								timer.Simple(time,function()
-									self:EmitSound(snd,140,100,1)
+								b.GBOWNER=ply
+								b.Owner=ply
+								b:Spawn()
+								b:Activate()
+								b:Arm()
+								b.PhysicsUpdate = function(data,phys)
+									phys:SetVelocityInstantaneous(Vector(0,0,-1000))
+								end
+								timer.Simple(-time,function()
+									if !IsValid(b) then return end
+									b:EmitSound(snd, 140, 100, 1)
 								end)
 							else
 								self:EmitSound(snd,140,100,1)
-								timer.Simple(-time,function()
-									if !util.IsInWorld(bpos) or !IsValid(self) then return end
-									self.Shell = ents.Create(self.ShellType)
-									self.Shell:SetPos(bpos)
-									self.Shell:SetAngles(Angle(90,0,0))
-									self.Shell.Owner = self.Owner
-									self.Shell.GBOWNER = self.Owner
-									self.Shell.IsOnPlane = true
-									self.Shell:Spawn()
-									self.Shell:Activate()
-									if self.Smoke then
-										self.Shell.Effect = "doi_smoke_artillery"
-										self.Shell.EffectAir = "doi_smoke_artillery"
-										self.Shell.Smoke = true
-										self.Shell.RSound = 1
-										self.Shell.ExplosionSound = table.Random(SmokeSounds)
-										self.Shell.WaterExplosionSound = table.Random(SmokeSounds)
+								timer.Simple(time,function()
+									if !IsValid(self) then return end
+									b:SetPos(BPos)
+									b:SetAngles(Angle(90,0,0))
+									b:SetOwner(self.Shooter)
+									b.IsOnPlane = true
+									if ammo == "Smoke" then
+										b.Smoke = true
 									end
-									self.Shell:Arm()
+									b.GBOWNER=ply
+									b:Spawn()
+									b:Activate()
+									b:Arm()
+									b.PhysicsUpdate = function(data,phys)
+										phys:SetVelocityInstantaneous(Vector(0,0,-1000))
+									end
+									b.Owner=ply
 								end)
 							end
 						end)
@@ -440,7 +493,11 @@ function ENT:CreateArtillery()
 					if IsValid(self) then
 						local bomber = ents.Create("prop_dynamic")
 						bomber:SetModel(self.AircraftModel)
-						bomber:SetPos(self.Pos)
+						if self.Bomber and !self.Stuka and !self.GunRun and !self.RocketRun then
+							bomber:SetPos(Vector(self.Pos.x,self.Pos.y,util.QuickTrace(self.Pos,self.Pos + Vector(0,0,20000)).HitPos.z))
+						else
+							bomber:SetPos(self.Pos)
+						end
 						bomber.AutomaticFrameAdvance = true
 						bomber:SetAngles(self:GetAngles())
 						bomber:SetMoveType(MOVETYPE_NOCLIP)
