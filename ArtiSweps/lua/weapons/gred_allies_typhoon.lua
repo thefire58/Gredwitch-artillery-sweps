@@ -23,7 +23,7 @@ SWEP.RocketRun					= true
 SWEP.FireRate					= 100
 SWEP.ShellCount					= 8
 
-SWEP.SoundName					= "/radio/allied/typhoonbegin"
+SWEP.SoundName					= "/radio/allied/british/typhoonbegin"
 SWEP.SndPossibilities			= 5
 SWEP.SndFormat					= ".ogg"
 SWEP.WaitGuns					= 2
@@ -33,3 +33,5 @@ SWEP.SndAccent                  = 1
 SWEP.PreSound					= "artillery/flyby/typhoon_flyby.ogg"
 SWEP.AircraftModel				= "models/gredwitch/static/typhoon.mdl"
 SWEP.ModelTimer					= 1.5
+
+SWEP.RadioCallInSnd				= "requesttyphoonstrike"

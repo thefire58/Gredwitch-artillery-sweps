@@ -23,7 +23,7 @@ SWEP.GunRun						= true
 SWEP.FireRate					= 625
 SWEP.ShellCount					= 100
 
-SWEP.SoundName					= "/radio/allied/straferunbegin"
+SWEP.SoundName					= "/radio/allied/american/straferunbegin"
 SWEP.SndPossibilities			= 5
 SWEP.SndFormat					= ".ogg"
 SWEP.WaitGuns					= 7
@@ -33,3 +33,5 @@ SWEP.StrikeType					= "Apache"
 SWEP.SndAccent                  = 0
 
 SWEP.PreSound					= "artillery/flyby/ah64_flyby.ogg"
+
+SWEP.RadioCallInSnd				= "requeststraferun"

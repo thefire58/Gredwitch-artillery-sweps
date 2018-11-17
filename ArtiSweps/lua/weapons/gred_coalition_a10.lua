@@ -23,7 +23,7 @@ SWEP.GunRun						= true
 SWEP.FireRate					= 3900
 SWEP.ShellCount					= 100
 
-SWEP.SoundName					= "/radio/allied/straferunbegin"
+SWEP.SoundName					= "/radio/allied/american/straferunbegin"
 SWEP.SndPossibilities			= 5
 SWEP.SndFormat					= ".ogg"
 SWEP.WaitGuns					= 4
@@ -36,3 +36,7 @@ SWEP.PreSndPossibilities		= 6
 SWEP.PreSndFormat				= ".ogg"
 SWEP.AircraftModel				= "models/gredwitch/static/a10.mdl"
 SWEP.ModelTimer					= 3
+
+
+SWEP.RadioCallInSnd				= "requeststraferun"
+SWEP.RandomBullets				= true

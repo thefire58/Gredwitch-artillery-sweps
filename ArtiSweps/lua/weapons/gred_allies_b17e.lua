@@ -20,7 +20,7 @@ SWEP.Team						= "Allies"
 SWEP.StrikeString				= "Air"
 SWEP.Bomber						= true
 
-SWEP.SoundName					= "/radio/allied/carpetbombbegin"
+SWEP.SoundName					= "/radio/allied/american/carpetbombbegin"
 SWEP.SndPossibilities			= 5
 SWEP.SndFormat					= ".ogg"
 
@@ -28,3 +28,5 @@ SWEP.SndLang					= "English"
 SWEP.SndAccent                  = 0
 SWEP.PreSound					= "artillery/flyby/bomber_carpetbomb_flyover.ogg"
 SWEP.AircraftModel				= "models/gredwitch/static/b17.mdl"
+
+SWEP.RadioCallInSnd				= "requestcarpetbomb"

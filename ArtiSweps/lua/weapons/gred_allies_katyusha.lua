@@ -25,9 +25,11 @@ SWEP.LoopTimerTime2				= 2.5
 SWEP.FireRate					= 1
 SWEP.ShellCount					= 24
 
-SWEP.SoundName					= "/radio/allied/artillerybegin"
+SWEP.SoundName					= "/radio/allied/american/artillerybegin"
 SWEP.SndPossibilities			= 6
 SWEP.SndFormat					= ".ogg"
 
 SWEP.SndLang					= "English"
 SWEP.SndAccent                  = 0
+
+SWEP.RadioCallInSnd				= "requestartillery"

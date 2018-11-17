@@ -25,9 +25,11 @@ SWEP.LoopTimerTime2				= 2.5
 SWEP.FireRate					= 1
 SWEP.ShellCount					= 15
 
-SWEP.SoundName					= "/radio/allied/incendiaryartillerybegin"
+SWEP.SoundName					= "/radio/allied/british/incendiaryartillerybegin"
 SWEP.SndPossibilities			= 5
 SWEP.SndFormat					= ".ogg"
 
 SWEP.SndLang					= "English"
 SWEP.SndAccent                  = 1
+
+SWEP.RadioCallInSnd				= "requestincendiaryartillery"

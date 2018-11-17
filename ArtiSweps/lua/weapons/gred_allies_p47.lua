@@ -23,7 +23,7 @@ SWEP.GunRun						= true
 SWEP.FireRate					= 6800
 SWEP.ShellCount					= 33
 
-SWEP.SoundName					= "/radio/allied/straferunbegin"
+SWEP.SoundName					= "/radio/allied/american/straferunbegin"
 SWEP.SndPossibilities			= 5
 SWEP.SndFormat					= ".ogg"
 SWEP.WaitGuns					= 2
@@ -33,3 +33,6 @@ SWEP.SndAccent                  = 0
 SWEP.PreSound					= "artillery/flyby/p47d_flyby.ogg"
 SWEP.AircraftModel				= "models/gredwitch/static/p47.mdl"
 SWEP.ModelTimer					= 1.5
+
+SWEP.RadioCallInSnd				= "requeststraferun"
+SWEP.RandomBullets				= true

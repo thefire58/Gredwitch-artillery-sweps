@@ -28,3 +28,5 @@ SWEP.SndLang					= "German"
 SWEP.SndAccent                  = 0
 SWEP.PreSound					= "artillery/flyby/bomber_carpetbomb_flyover.ogg"
 SWEP.AircraftModel				= "models/gredwitch/static/he111.mdl"
+
+SWEP.RadioCallInSnd				= "requestcarpetbomb"

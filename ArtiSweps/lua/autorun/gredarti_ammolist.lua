@@ -13,11 +13,68 @@ game.AddAmmoType( {
 	dmgtype = DMG_BULLET
 } )
 
-local HasBase = steamworks.ShouldMountAddon(1131455085) and steamworks.IsSubscribed(1131455085) 
+-- Precache sounds
+local totalsounds = 0
+for k,v in pairs(file.Find('sound/american_01/suppressed/*.wav', "GAME")) do 
+	util.PrecacheSound(v) 
+	totalsounds = totalsounds + 1 
+end
+for k,v in pairs(file.Find('sound/american_01/unsuppressed/*.wav', "GAME")) do 
+	util.PrecacheSound(v) 
+	totalsounds = totalsounds + 1 
+end
+
+for k,v in pairs(file.Find('sound/british/suppressed/*.wav', "GAME")) do
+	util.PrecacheSound(v) 
+	totalsounds = totalsounds + 1 
+end
+for k,v in pairs(file.Find('sound/british/unsuppressed/*.wav', "GAME")) do
+	util.PrecacheSound(v) 
+	totalsounds = totalsounds + 1 
+end
+
+for k,v in pairs(file.Find('sound/german_01/suppressed/*.wav', "GAME")) do 
+	util.PrecacheSound(v)
+	totalsounds = totalsounds + 1
+end
+for k,v in pairs(file.Find('sound/german_01/unsuppressed/*.wav', "GAME")) do 
+	util.PrecacheSound(v) 
+	totalsounds = totalsounds + 1
+end
+
+for k,v in pairs(file.Find('sound/radio/axis/*.ogg', "GAME")) do 
+	util.PrecacheSound(v) 
+	totalsounds = totalsounds + 1 
+end
+for k,v in pairs(file.Find('sound/radio/allied/british/*.ogg', "GAME")) do 
+	util.PrecacheSound(v) 
+	totalsounds = totalsounds + 1 
+end
+for k,v in pairs(file.Find('sound/radio/allied/american/*.ogg', "GAME")) do 
+	util.PrecacheSound(v) 
+	totalsounds = totalsounds + 1 
+end
+
+for k,v in pairs(file.Find('sound/artillery/far/*.wav', "GAME")) do 
+	util.PrecacheSound(v) 
+	totalsounds = totalsounds + 1 
+end
+for k,v in pairs(file.Find('sound/artillery/flyby/*.wav', "GAME")) do 
+	util.PrecacheSound(v) 
+	totalsounds = totalsounds + 1 
+end
+for k,v in pairs(file.Find('sound/artillery/flyby/*.ogg', "GAME")) do 
+	util.PrecacheSound(v) 
+	totalsounds = totalsounds + 1 
+end
+
+print("[GREDWITCH'S ARTILLERY SWEPs] Precached "..totalsounds.." sounds.")
+
 
 timer.Simple(5,function()
-	if !HasBase and not GredFrame then
-		if CLIENT then
+	if CLIENT then
+		local HasBase = steamworks.ShouldMountAddon(1131455085) and steamworks.IsSubscribed(1131455085) 
+		if !HasBase and !GredFrame then
 			GredFrame=vgui.Create('DFrame')
 			GredFrame:SetTitle("Grediwtch's Base is not installed / enabled")
 			GredFrame:SetSize(ScrW()*0.95, ScrH()*0.95)
@@ -31,8 +88,7 @@ timer.Simple(5,function()
 			h:SetSize(x*0.99,y*0.96)
 			h:SetAllowLua(true)
 			h:OpenURL('https://steamcommunity.com/sharedfiles/filedetails/?id=1131455085.html')
+			print("[GREDWITCH'S ARTILLERY SWEPs] Gredwitch's Base is not installed or not enabled!")
 		end
-		print("[GREDWITCH'S ARTILLERY SWEPs] Gredwitch's Base is not installed or not enabled!")
 	end
 end)
-if !HasBase then return end

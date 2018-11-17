@@ -67,12 +67,12 @@ if SERVER then
 		self.Entity:PhysicsInit(SOLID_NONE)
 		self.Entity:SetMoveType(MOVETYPE_VPHYSICS)
 		self.Entity:SetSolid(SOLID_NONE)
-		if self.GunRun then 
-			self.ShellCount = self.FireRate / (self.ShellCount + math.random(10,self.FireRate/150))
-			self.OldShellCount = self.ShellCount
-		end
-		self.IsMortar = table.HasValue(string.Explode(" ",self.StrikeString:lower(),true),"mortar")
 		self.OldShellCount = self.ShellCount
+		if self.GunRun and self.RandomBullets then 
+			self.ShellCount = self.FireRate / (self.ShellCount + math.random(10,self.FireRate/150))
+		end
+		self.OldShellCount = self.ShellCount
+		self.IsMortar = table.HasValue(string.Explode(" ",self.StrikeString:lower(),true),"mortar")
 		self:CreateArtillery()
 	end
 	
@@ -91,7 +91,12 @@ if SERVER then
 					if self.Bomber then
 					
 						if !IsValid(self) then return end
+						-- if !self.FirstShotPassed then
+							-- bpos = self.Pos -- + self:GetForward()*1
+							-- self.FirstShotPassed = true
+						-- else
 						local bpos = self.Pos + self:GetForward()*600
+						-- end
 						if !util.IsInWorld(bpos) then return end
 						local HitBPos = Vector(0,0,
 						util.QuickTrace(bpos,bpos - reachSky,{self} ).HitPos.z)
@@ -104,7 +109,6 @@ if SERVER then
 						local sndDuration = SoundDuration(snd)
 						
 						local time = (dist/-1000)+(sndDuration-0.2) -- Calculates when to play the whistle sound
-						local time = 1
 						local b = ents.Create(self.ShellType)
 						if time < 0 then
 							b:SetPos(bpos)
@@ -125,6 +129,7 @@ if SERVER then
 						else
 							self:EmitSound(snd,140,100,1)
 							timer.Simple(time,function()
+								if !IsValid(b) then return end
 								b:SetPos(bpos)
 								if self.StrikeString == "Stuka" then b:SetAngles(Angle(90,0,0)) end
 								b.IsOnPlane = true
@@ -252,16 +257,18 @@ if SERVER then
 							end
 							local sndDuration = SoundDuration(snd)
 							
-							local b=ents.Create(self.ShellType)
+							if self.Smoke and self.ShellType == "gb_rocket_nebel" then
+								b=ents.Create("gb_shell_88mm")
+							else
+								b=ents.Create(self.ShellType)
+							end
 							local time = (dist/-1000)+(sndDuration-0.2) -- Calculates when to play the whistle sound
 							if time < 0 then
 								b:SetPos(BPos)
 								b:SetAngles(Angle(90,0,0))
 								b:SetOwner(self.Shooter)
 								b.IsOnPlane = true
-								if ammo == "Smoke" then
-									b.Smoke = true
-								end
+								b.Smoke = self.Smoke
 								b.GBOWNER=ply
 								b.Owner=ply
 								b:Spawn()
@@ -278,13 +285,12 @@ if SERVER then
 								self:EmitSound(snd,140,100,1)
 								timer.Simple(time,function()
 									if !IsValid(self) then return end
+									if !IsValid(b) then return end
 									b:SetPos(BPos)
 									b:SetAngles(Angle(90,0,0))
 									b:SetOwner(self.Shooter)
 									b.IsOnPlane = true
-									if ammo == "Smoke" then
-										b.Smoke = true
-									end
+									b.Smoke = self.Smoke
 									b.GBOWNER=ply
 									b:Spawn()
 									b:Activate()
@@ -489,11 +495,18 @@ function ENT:CreateArtillery()
 		end
 		if self.GunRun or self.RocketRun or self.Bomber then
 			if GetConVar("gred_sv_artisweps_aircrafts"):GetInt() == 1 then
+						if self.Bomber then
+							if self.ShellType == "gb_bomb_sc250" then 
+								self.ModelTimer = self.ModelTimer * 0.7
+							else
+								self.ModelTimer = self.ModelTimer * 0.8
+							end
+						end
 				timer.Simple(self.ModelTimer,function()
 					if IsValid(self) then
 						local bomber = ents.Create("prop_dynamic")
 						bomber:SetModel(self.AircraftModel)
-						if self.Bomber and !self.Stuka and !self.GunRun and !self.RocketRun then
+						if self.Bomber and self.ShellType != "gb_bomb_sc250" and self.ShellType != "gb_bomb_mk77" and !self.GunRun and !self.RocketRun then
 							bomber:SetPos(Vector(self.Pos.x,self.Pos.y,util.QuickTrace(self.Pos,self.Pos + Vector(0,0,20000)).HitPos.z))
 						else
 							bomber:SetPos(self.Pos)
@@ -512,6 +525,13 @@ function ENT:CreateArtillery()
 							ph:EnableCollisions(false)
 						end
 						bomber:ResetSequence("action")
+						if self.Bomber then
+							if self.ShellType == "gb_bomb_sc250" then 
+								bomber:SetPlaybackRate(0.7)
+							else
+								bomber:SetPlaybackRate(0.8)
+							end
+						end
 						self.bomber = bomber
 						timer.Simple(bomber:SequenceDuration(),function() if IsValid(bomber) then bomber:Remove() end end)
 					end

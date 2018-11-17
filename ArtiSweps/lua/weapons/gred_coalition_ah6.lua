@@ -21,12 +21,12 @@ SWEP.Bomber						= false
 
 SWEP.GunRun						= true
 SWEP.FireRate					= 4000
-SWEP.ShellCount					= 4.77
+SWEP.ShellCount					= 140--4.77
 SWEP.GunCount					= 2
 SWEP.GunOffset					= 70
 SWEP.CustomAngle				= 69
 
-SWEP.SoundName					= "/radio/allied/straferunbegin"
+SWEP.SoundName					= "/radio/allied/american/straferunbegin"
 SWEP.SndPossibilities			= 5
 SWEP.SndFormat					= ".ogg"
 SWEP.WaitGuns					= 5.9
@@ -37,3 +37,5 @@ SWEP.SndAccent                  = 0
 SWEP.PreSound					= "artillery/flyby/ah6_flyby_guns.wav"
 SWEP.AircraftModel				= "models/gredwitch/static/littlebird.mdl"
 SWEP.ModelTimer					= 3
+
+SWEP.RadioCallInSnd				= "requeststraferun"

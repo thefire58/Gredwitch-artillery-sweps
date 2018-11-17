@@ -26,3 +26,5 @@ SWEP.WaitGuns					= 15
 SWEP.PreSound					= "artillery/flyby/stuka_dive_bomb.ogg"
 SWEP.AircraftModel				= "models/gredwitch/static/stuka.mdl"
 SWEP.ModelTimer					= 8
+
+SWEP.RadioCallInSnd				= "requeststukadive"

@@ -3,6 +3,7 @@ AddCSLuaFile()
 local GRED_SVAR = { FCVAR_REPLICATED, FCVAR_ARCHIVE, FCVAR_SERVER_CAN_EXECUTE, FCVAR_NOTIFY }
 CreateConVar("gred_sv_artisweps_aircrafts"				,  "1"  , GRED_SVAR)
 CreateConVar("gred_sv_artisweps_skybox_mdls"			,  "0"  , GRED_SVAR)
+CreateConVar("gred_sv_spam"								,  "0"  , GRED_SVAR)
 
 local function gredsettings(CPanel)
 	CPanel:ClearControls()
@@ -11,11 +12,20 @@ local function gredsettings(CPanel)
 	CPanel:AddControl( "CheckBox", { Label = "Should there be aircrafts flying over the target?", Command = "gred_sv_artisweps_aircrafts" } );
 	
 	CPanel:AddControl( "CheckBox", { Label = "Should the aircrafts be skybox-sized?", Command = "gred_sv_artisweps_skybox_mdls" } );
+	
+	CPanel:AddControl( "CheckBox", { Label = "Enable the old spam mode?", Command = "gred_sv_spam" } );
 end
 
 hook.Add( "PopulateToolMenu", "gred_arti_menu", function()
 	spawnmenu.AddToolMenuOption( "Options", "Gredwitch's Arti SWEPs", "GredwitchSWEPSettings", "Settings", "", "", gredsettings )
 end );
+
+net.Receive ("gred_net_set_entity_var",function()
+	local self = net.ReadEntity()
+	local var = net.ReadString()
+	local value = net.ReadString()
+	self:SetNWString(var,value)
+end)
 
 if SERVER then AddCSLuaFile() end
 

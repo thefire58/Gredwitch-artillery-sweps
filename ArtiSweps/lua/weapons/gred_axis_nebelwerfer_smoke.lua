@@ -32,3 +32,5 @@ SWEP.SndFormat					= ".ogg"
 
 SWEP.SndLang					= "German"
 SWEP.SndAccent                  = 0
+
+SWEP.RadioCallInSnd				= "requestsmokeartillery"
