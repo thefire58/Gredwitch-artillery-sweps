@@ -6,7 +6,7 @@ ENT.Base 							=	"base_anim"
 ENT.Spawnable		            	=	false
 ENT.AdminSpawnable		            =	false
 
-ENT.PrintName		                =	"Artillery strike entity"
+ENT.PrintName		                =	"[OTHERS]Artillery strike entity"
 ENT.Author			                =	"Gredwitch"
 ENT.Contact			                =	"qhamitouche@gmail.com"
 ENT.Category                        =	"Gredwitch's Stuff"
@@ -59,6 +59,15 @@ sound.Add( {
 	sound = "artillery/flyby/apache_cannon.wav"
 } )
 
+sound.Add( {
+	name = "apache_missile",
+	channel = CHAN_WEAPON,
+	volume = 1.0,
+	level = 140,
+	pitch = {100},
+	sound = "gunsounds/fh2_rocket_3p.wav"
+} )
+
 if SERVER then
 
 	local reachSky = Vector(0,0,9999999999)
@@ -79,6 +88,7 @@ if SERVER then
 	function ENT:Think()
 		local ct = CurTime()
 		if self.ShouldCreateArti then
+			
 			if self.NextShell < ct then
 				local curAng = self:GetAngles()
 				if self.StrikeType then
@@ -91,12 +101,7 @@ if SERVER then
 					if self.Bomber then
 					
 						if !IsValid(self) then return end
-						-- if !self.FirstShotPassed then
-							-- bpos = self.Pos -- + self:GetForward()*1
-							-- self.FirstShotPassed = true
-						-- else
 						local bpos = self.Pos + self:GetForward()*600
-						-- end
 						if !util.IsInWorld(bpos) then return end
 						local HitBPos = Vector(0,0,
 						util.QuickTrace(bpos,bpos - reachSky,{self} ).HitPos.z)
@@ -198,6 +203,7 @@ if SERVER then
 					elseif self.RocketRun then
 						for i = 1,2 do
 							local b = ents.Create(self.ShellType)
+							if not num then num = 0 end
 							num = num + (curAng.p*0.05)
 							if i == 1 then
 								b:SetPos(self.Pos + self:GetRight()*300)
@@ -215,13 +221,17 @@ if SERVER then
 						self:SetAngles(curAng - Angle((2/((self.OldShellCount)/70)),0,0))
 					else
 						for _,ply in pairs (player.GetAll()) do
-							if self.IsMortar then
-								ply:GetViewEntity():EmitSound("artillery/far/mortar_fire"..math.random(1,11)..".wav" )
+							if self.FireSND then
+								ply:GetViewEntity():EmitSound(table.Random(self.FireSND))
 							else
-								if string.StartWith(self.ShellType, "gb_shell_") then
-									ply:GetViewEntity():EmitSound("artillery/far/distant_artillery_fire_0"..math.random(1,4)..".wav" )
-								elseif self.ShellType == "gb_rocket_nebel" then
-									ply:GetViewEntity():EmitSound("artillery/far/distant_rocket_artillery_fire_0"..math.random(1,4)..".wav")
+								if self.IsMortar then
+									ply:GetViewEntity():EmitSound("artillery/far/mortar_fire"..math.random(1,11)..".wav" )
+								else
+									if string.StartWith(self.ShellType, "gb_shell_") then
+										ply:GetViewEntity():EmitSound("artillery/far/distant_artillery_fire_0"..math.random(1,4)..".wav" )
+									elseif self.ShellType == "gb_rocket_nebel" then
+										ply:GetViewEntity():EmitSound("artillery/far/distant_rocket_artillery_fire_0"..math.random(1,4)..".wav")
+									end
 								end
 							end
 						end
@@ -246,13 +256,17 @@ if SERVER then
 							----------------------
 							
 							local snd
-							if self.IsMortar then
-								snd = table.Random(MortarShellSnd)
+							if self.IncomingSnd then
+								snd = table.Random(self.IncomingSnd)
 							else
-								if string.StartWith(self.ShellType, "gb_shell_") then
-									snd = table.Random(ShellSnd)
-								elseif self.ShellType == "gb_rocket_nebel" then
-									snd = table.Random(RktSnd)
+								if self.IsMortar then
+									snd = table.Random(MortarShellSnd)
+								else
+									if string.StartWith(self.ShellType, "gb_shell_") then
+										snd = table.Random(ShellSnd)
+									elseif self.ShellType == "gb_rocket_nebel" then
+										snd = table.Random(RktSnd)
+									end
 								end
 							end
 							local sndDuration = SoundDuration(snd)
@@ -319,156 +333,191 @@ function ENT:AC130(ct,ang)
 end
 
 function ENT:Apache(ct,ang)
-	if self.Shoot == nil then self.Shoot = 0 end
-	if self.GunTime == nil then self.GunTime = true end
-	if self.Wave == nil then self.Wave = 1 end
-	if not wac then rkt = "gb_rocket_hvar" else rkt = "gb_rocket_hydra" end
-	if self.Wave == 1 then
-		ang = Angle(90,ang.y,ang.r)
-		if self.GunTime then
-			self:StopSound("apache_shoot")
-			self:EmitSound("apache_shoot")
-			num = 14 + (ang.p*0.05)
-			local b = ents.Create("gred_base_bullet")
-			ang = ang + Angle(math.random(num,-num), math.random(num,-num), math.random(num,-num))
-			b:SetPos(self.Pos)	
-			b:SetAngles(ang)
-			b.Damage=40
-			b.Radius=70
-			b.sequential=0
-			b.gunRPM=self.FireRate
-			b.Caliber=self.ShellType
-			b:Spawn()
-			b:Activate()
-			constraint.NoCollide(b,self,0,0,true)
-			b.Owner=self.Owner
-			self.tracer = self.tracer + 1
-			if self.tracer >= GetConVar("gred_sv_tracers"):GetInt() then
-				b:SetSkin(1)
-				b:SetModelScale(7)
-				self.tracer = 0
-			else 
-				b.noTracer = true
-			end
-			self.NextShell = ct + (60/self.FireRate)
-			self.Shoot = self.Shoot + 1
-			if self.Shoot >= 14 then
-				self.GunTime = false
-				self.Shoot = 0
-			end
-		else
-			if self.ang == nil then self.ang = ang end
-			for i = 1,2 do
-				local b = ents.Create(rkt)
-				num = num + (ang.p*0.05)
-				if i == 1 then
-					b:SetPos(self.Pos + self:GetRight()*100)
-				else
-					b:SetPos(self.Pos + self:GetRight()*-100)
-				end
-				b:SetAngles(self.ang)
-				b.GBOWNER=self.Owner
-				b:Spawn()
-				b:Activate()
-				b:Launch()
-				self.Shoot = self.Shoot + 1
-			end
-			self.ang = (self.ang - Angle(10,0,0))
-			if self.Shoot >= 8 then
-				self.GunTime = true
-				self.Shoot = 0
-				self.ang = nil
-				self.NextShell = ct + 0.67
-				self.Wave = 2
+	-- Setting up variables
+	
+	if not self.ShotCount then 
+		self.ShotCount = 0
+		self.OldPos = self.Pos
+		self.Pos = self.Pos - Vector(0,0,1000)
+		self.FireRockets = true
+		self.Targets = {}
+		self.OldTargets = {}
+		self.StopTime = ct + 24
+	end
+	
+	if not ang then ang = Angle(90,ang.y,ang.r) end
+	if self.ang == nil then self.ang = ang end
+	
+	-- Coming in, fire rockets
+	if self.FireRockets == true then
+		for i = 1,2 do
+			local mis = ents.Create("gb_rocket_hydra")
+			if i == 1 then
+				mis:SetPos(self.OldPos + self:GetRight()*100)
 			else
-				self.NextShell = ct + 0.67
+				mis:SetPos(self.OldPos + self:GetRight()*-100)
 			end
+			mis:SetAngles(self.ang)
+			mis.GBOWNER=self.Owner
+			mis:Spawn()
+			mis:Activate()
+			mis:Launch()
 		end
-	elseif self.Wave > 1 then
-		ang = Angle(90,ang.y,ang.r)
-		if self.GunTime then
-			self:StopSound("apache_shoot")
-			self:EmitSound("apache_shoot")
-			ang = ang - Angle(10,0,0)
-			num = 40 + (ang.p*0.05)
-			local b = ents.Create("gred_base_bullet")
-			ang = ang + Angle(math.random(num,-num), math.random(num,-num), math.random(num,-num))
-			b:SetPos(self.Pos)	
-			b:SetAngles(ang)
-			b.Damage=40
-			b.Radius=70
-			b.sequential=0
-			b.gunRPM=self.FireRate
-			b.Caliber=self.ShellType
-			b:Spawn()
-			b:Activate()
-			constraint.NoCollide(b,self,0,0,true)
-			b.Owner=self.Owner
-			self.tracer = self.tracer + 1
-			if self.tracer >= GetConVar("gred_sv_tracers"):GetInt() then
-				b:SetSkin(1)
-				b:SetModelScale(7)
-				self.tracer = 0
-			else 
-				b.noTracer = true
-			end
-			self.Shoot = self.Shoot + 1
-			if self.Shoot >= 14 then
-				self.Shoot = 0
-				self.Wave = self.Wave + 1
-				if self.Wave >= 4 then
-					self.GunTime = false 
-					self.NextShell = ct + 3
-					if self.Wave == 6 then self:Remove() end
-				else
-					self.NextShell = ct + 1.5
-				end
-			else
-				self.NextShell = ct + (60/self.FireRate)
-			end
+		
+		self.ShotCount = self.ShotCount + 1
+		if self.ShotCount > 4 then
+			self.FireRockets = false
+			self.LookUpTargets = true
+			self.NextShell = ct + 2
+			self.ang = ang
 		else
-			if self.ang == nil then self.ang = ang + Angle(0,math.random(180,-180),0) end
-			for i = 1,2 do
-				local b = ents.Create(rkt)
-				num = num + (ang.p*0.05)
-				if i == 1 then
-					b:SetPos(self.Pos + self:GetRight()*100)
-				else
-					b:SetPos(self.Pos + self:GetRight()*-100)
-				end
-				b:SetAngles(self.ang)
-				b.GBOWNER=self.Owner
-				b:Spawn()
-				b:Activate()
-				b:Launch()
-				self.Shoot = self.Shoot + 1
-			end
-			self.ang = (self.ang - Angle(10,0,0))
-			if self.Shoot >= 8 then
-				self.GunTime = true
-				self.Shoot = 0
-				self.ang = nil
-				self.timer = 0.5
-				self.NextShell = ct + (60/30)
-				self.Wave = self.Wave + 1
-			else
-				self.NextShell = ct + (60/90)
-			end
+			self.ang = (self.ang - Angle(10))
+			self.NextShell = ct + 0.5
 		end
 	end
+	
+	-- AI mode
+	
+	if self.LookUpTargets == true then
+		-- Looking for targets
+		local DontShootAtTeam = GetConVar("gred_sv_artisweps_helisupport_shootateveryone"):GetInt() == 0
+		
+		local IsPlayer = IsPlayer
+		for k,v in pairs (ents.FindInSphere(self.Pos,3000)) do
+			if (v:IsPlayer() && (DontShootAtTeam and (v:Team() != self.Owner:Team())) or v:IsNPC() and not table.HasValue(self.Targets,v) )
+			and not table.HasValue(self.OldTargets,v) then
+				table.insert(self.Targets,v)
+			end
+		end
+		-- Check if the target is a player or a vehicle.
+		-- Priority order : Player in vehicle > Player > NPC
+		if self.CurTarget == nil or not self.CurTarget then
+			for k,v in pairs(self.Targets) do
+				if v:IsPlayer() and not table.HasValue(self.OldTargets,v) then
+					if v:InVehicle() then
+						self.CurTarget = v
+						break
+					end
+				end
+			end
+			if not IsValid(self.CurTarget) then
+				for k,v in pairs(self.Targets) do
+					if v:IsPlayer() and not table.HasValue(self.OldTargets,v) then
+						self.CurTarget = v
+						break
+					end
+				end
+			end
+			if not IsValid(self.CurTarget) then
+				local t = table.Random(self.Targets)
+				while table.HasValue(self.OldTargets,t) do t = table.Random(self.Targets) end
+				self.CurTarget = t
+			end
+			table.RemoveByValue(self.Targets,self.CurTarget)
+			table.insert(self.OldTargets,self.CurTarget)
+			self.ShotCount = 0
+		end
+		
+		if self.CurTarget && self.CurTarget:IsPlayer() then
+			if !self.CurTarget:Alive() then self.CurTarget = nil end
+		end
+		
+		-- Firing
+		if self:TargetStillValid(self.CurTarget) then
+			-- If the player is in a vehicle, fire a Hellfire
+			if self.CurTarget:IsPlayer() && self.CurTarget:InVehicle() then
+				local veh = self.CurTarget:GetVehicle()
+				if not veh.ApacheLocked then
+					local rocket = ents.Create("wac_base_grocket")
+					rocket:SetModel ( "models/doi/ty_missile.mdl" )
+					local pos = self:GetPos()
+					rocket:SetPos(pos)
+					rocket:SetAngles(ang)
+					rocket.Owner = self.Owner
+					rocket.Damage = 1500
+					rocket.Radius = 400
+					rocket.Speed = 70
+					rocket.Drag = Vector(0,1,1)
+					rocket.TrailLength = 200
+					rocket.Scale = 15
+					rocket.SmokeDens = 1
+					rocket.Launcher = self
+					rocket.target = self.CurTarget
+					rocket.targetOffset = self.CurTarget:WorldToLocal(self.CurTarget:GetPos())
+					rocket.calcTarget = function(r)
+						r.hellfire = true
+						return r.target:LocalToWorld(r.targetOffset)
+					end
+					rocket:Spawn()
+					rocket:Activate()
+					rocket:StartRocket()
+					local ph = rocket:GetPhysicsObject()
+					if ph:IsValid() then
+						ph:AddAngleVelocity(Vector(30,0,0))
+					end
+					
+					self:EmitSound("apache_missile")
+					self.NextShell = ct + 1
+					veh.ApacheLocked = true
+				end
+			else
+				local targetpos = self.CurTarget:GetPos()
+				if !util.IsInWorld(targetpos) then self.CurTarget = nil return end
+				local ang = (targetpos-self:GetPos()):Angle()
+				
+				self:StopSound("apache_shoot")
+				self:EmitSound("apache_shoot")
+				num = 3 + (ang.p*0.05)
+				local b = ents.Create("gred_base_bullet")
+				ang = ang + Angle(math.random(num,-num), math.random(num,-num), math.random(num,-num))
+				b:SetPos(self:GetPos())	
+				b:SetAngles(ang)
+				b.Damage=40
+				b.Radius=70
+				b.sequential=0
+				b.gunRPM=self.FireRate
+				b.Caliber=self.ShellType
+				b:Spawn()
+				b:Activate()
+				constraint.NoCollide(b,self,0,0,true)
+				b.Owner=self.Owner
+				self.tracer = self.tracer + 1
+				if self.tracer >= GetConVar("gred_sv_tracers"):GetInt() then
+					b:SetSkin(1)
+					b:SetModelScale(7)
+					self.tracer = 0
+				else 
+					b.noTracer = true
+				end
+				
+				self.ShotCount = self.ShotCount + 1
+				if self.ShotCount >= 20 then
+					self.ShotCount = 0
+					self.NextShell = ct + 1
+				else
+					self.NextShell = ct + (60/self.FireRate)
+				end
+			end
+		else
+			self.CurTarget = nil
+			self.ShotCount = 0
+			self.NextShell = ct + 0.2
+		end
+		
+	end
+	if self.StopTime < ct then self:Remove() end
 end
 
-function ENT:OnRemove()
-	if self.bomber then
-		if IsValid(self.bomber) then
-			timer.Simple(self.bomber:SequenceDuration() * self.bomber:GetCycle(), function()
-				if IsValid(self.bomber) then
-					self.bomber:Remove()
-					self.bomber = nil
-				end
-			end)
+function ENT:TargetStillValid(t)
+	local valid = t && IsValid(t)
+	if valid then
+		if t:IsNPC() then
+			valid = valid and t:GetNPCState() != 7
+		elseif t:IsPlayer() then
+			valid = valid and t:Alive()
 		end
 	end
+	return valid
 end
 
 function ENT:CreateArtillery()
@@ -532,8 +581,14 @@ function ENT:CreateArtillery()
 								bomber:SetPlaybackRate(0.8)
 							end
 						end
+						if self.AnimPlaybackRate then bomber:SetPlaybackRate(self.AnimPlaybackRate) else self.AnimPlaybackRate = 0 end
 						self.bomber = bomber
-						timer.Simple(bomber:SequenceDuration(),function() if IsValid(bomber) then bomber:Remove() end end)
+						local time = bomber:SequenceDuration()*(2*self.AnimPlaybackRate+1) + self.ModelTimer
+						timer.Simple(time,function()
+							if IsValid(bomber) then 
+								bomber:Remove() 
+							end
+						end)
 					end
 				end)
 			end

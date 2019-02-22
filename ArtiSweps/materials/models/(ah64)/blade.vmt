@@ -1,0 +1,11 @@
+vertexLitGeneric
+{
+	"$basetexture" "models/(AH64)/blade"
+	"$surfaceprop" "metal"
+	"$bumpmap"	"models/(AH64)/blade_n"
+	"$phong" "1"
+	"$phongexponent" "5"
+	"$phongboost" "0.8"	
+	"$phongfresnelranges"	"[2 3 3]"
+
+}

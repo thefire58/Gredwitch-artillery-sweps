@@ -34,4 +34,9 @@ SWEP.SndAccent                  = 0
 
 SWEP.PreSound					= "artillery/flyby/ah64_flyby.ogg"
 
+-- SWEP.PreSound					= "artillery/flyby/ah6_flyby_guns.wav"
+SWEP.AircraftModel				= "models/gredwitch/static/ah64.mdl"
+SWEP.AnimPlaybackRate			= 0.5
+SWEP.ModelTimer					= 0
+
 SWEP.RadioCallInSnd				= "requeststraferun"
