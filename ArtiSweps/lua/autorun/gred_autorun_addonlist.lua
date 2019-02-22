@@ -33,7 +33,7 @@ timer.Simple(5,function()
 		local GetWorkshopFileInfo = steamworks.FileInfo
 		
 		for k,v in pairs(addons) do
-			if not (IsMounted(v)) then
+			if !IsMounted(v) and v != addons[k+1] then
 				tableinsert(gred.ClientRequiredAddons,v)
 			end
 		end
