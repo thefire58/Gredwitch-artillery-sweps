@@ -42,7 +42,7 @@ if CLIENT then
 	local function gred_settings_artisweps(CPanel)
 		CPanel:ClearControls()
 		Created = true;
-		if game.IsDedicated() then
+		if not game.IsDedicated() then
 			CPanel:AddControl( "CheckBox", { Label = "Should there be aircrafts flying over the target?", Command = "gred_sv_artisweps_aircrafts" } );
 			
 			CPanel:AddControl( "CheckBox", { Label = "Should the aircrafts be skybox-sized?", Command = "gred_sv_artisweps_skybox_mdls" } );
