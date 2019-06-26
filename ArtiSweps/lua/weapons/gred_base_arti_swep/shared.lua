@@ -414,7 +414,6 @@ if SERVER then
 					self:CreateSubtitles(snd,ply)
 					timer.Simple(SoundDuration(snd) + 1, function() self.IsCallingIn = false end)
 					net.Start("gred_net_message_ply")
-						net.WriteEntity(ply)
 						net.WriteString("[GREDWITCH'S SWEPS]Bad target! Don't aim inside buildings")
 					net.Send(ply)
 				else
@@ -422,7 +421,6 @@ if SERVER then
 					self.Weapon:EmitSound(snd)
 					self:CreateSubtitles(snd,ply)
 					net.Start("gred_net_message_ply")
-						net.WriteEntity(ply)
 						net.WriteString("[GREDWITCH'S SWEPS]"..self.StrikeString.." strike begins in "..(self.strikedalay).." seconds")
 					net.Send(ply)
 					self:TakePrimaryAmmo(1)

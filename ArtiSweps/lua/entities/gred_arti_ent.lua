@@ -69,9 +69,22 @@ sound.Add( {
 } )
 
 if SERVER then
+	local num,ang,pos
+	local tracer = 0
+	local Tracer = false
+	function ENT:UpdateTracers()
+		tracer = tracer + 1
+		if tracer >= self.TracerConvar:GetInt() then
+			tracer = 0
+			return "red"
+		else
+			return false
+		end
+	end
 
 	local reachSky = Vector(0,0,9999999999)
-	function ENT:Initialize() 
+	function ENT:Initialize()
+		self.TracerConvar = GetConVar("gred_sv_tracers")
 		self.Entity:SetModel(self.Model)
 		self.Entity:PhysicsInit(SOLID_NONE)
 		self.Entity:SetMoveType(MOVETYPE_VPHYSICS)
@@ -171,32 +184,9 @@ if SERVER then
 						end
 						num = num + (curAng.p*0.05)
 						for i = 1,self.GunCount do
-							local b = ents.Create("gred_base_bullet")
-							ang = curAng + Angle(math.random(num,-num), math.random(num,-num), math.random(num,-num))
-							
-							if i == 1 then
-								b:SetPos(self.Pos + self:GetRight()*self.GunOffset)
-							else
-								b:SetPos(self.Pos + self:GetRight()*-self.GunOffset)
-							end
-							b:SetAngles(ang)
-							b.Damage=40
-							b.Radius=70
-							b.sequential=0
-							b.gunRPM=self.FireRate
-							b.Caliber=self.ShellType
-							b:Spawn()
-							b:Activate()
-							constraint.NoCollide(b,self,0,0,true)
-							b.Owner=self.Owner
-							self.tracer = self.tracer + 1
-							if self.tracer >= GetConVar("gred_sv_tracers"):GetInt() then
-								b:SetSkin(1)
-								b:SetModelScale(7)
-								self.tracer = 0
-							else 
-								b.noTracer = true
-							end
+							local ang = curAng + Angle(math.random(num,-num), math.random(num,-num), math.random(num,-num))
+							local pos = i == 1 and self.Pos + self:GetRight()*self.GunOffset or self.Pos + self:GetRight()*-self.GunOffset
+							gred.CreateBullet(self.Owner,pos,ang,self.ShellType,nil,nil,false,self:UpdateTracers())
 						end
 						self.NextShell = ct + (60/self.FireRate)
 						self:SetAngles(curAng - Angle((1/(self.OldShellCount/self.CustomAngle)),0,0))
@@ -468,27 +458,8 @@ function ENT:Apache(ct,ang)
 				self:StopSound("apache_shoot")
 				self:EmitSound("apache_shoot")
 				num = 3 + (ang.p*0.05)
-				local b = ents.Create("gred_base_bullet")
 				ang = ang + Angle(math.random(num,-num), math.random(num,-num), math.random(num,-num))
-				b:SetPos(self:GetPos())	
-				b:SetAngles(ang)
-				b.Damage=40
-				b.Radius=70
-				b.sequential=0
-				b.gunRPM=self.FireRate
-				b.Caliber=self.ShellType
-				b:Spawn()
-				b:Activate()
-				constraint.NoCollide(b,self,0,0,true)
-				b.Owner=self.Owner
-				self.tracer = self.tracer + 1
-				if self.tracer >= GetConVar("gred_sv_tracers"):GetInt() then
-					b:SetSkin(1)
-					b:SetModelScale(7)
-					self.tracer = 0
-				else 
-					b.noTracer = true
-				end
+				gred.CreateBullet(self.Owner,self:GetPos(),ang,self.ShellType,nil,nil,false,self:UpdateTracers())
 				
 				self.ShotCount = self.ShotCount + 1
 				if self.ShotCount >= 20 then
