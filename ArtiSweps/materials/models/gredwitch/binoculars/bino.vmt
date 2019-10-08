@@ -1,0 +1,18 @@
+"VertexLitGeneric"
+{
+	$basetexture			"models/gredwitch/binoculars/Bino"
+	$bumpmap				"models/gredwitch/binoculars/Binoc_normals_F"
+	
+    // $envmap 					"env_cubemap"
+    $normalmapalphaenvmapmask 	1
+    $envmaptint 				"[0.20 0.20 0.20]"
+
+	$phongexponenttexture 	"models/gredwitch/binoculars/Bino_Spec"
+    $phong 						1
+    $phongfresnelranges 		"[0.25 0.58 8]"
+    $phongtint 					"[1 0.99 0.79]"
+    $phongexponent 				6
+    $phongboost 				1
+    $phongalbedoboost 			1
+}
+
