@@ -58,8 +58,14 @@ if CLIENT then
 	net.Receive("gred_net_artiplaysound",function()
 		surface.PlaySound(net.ReadString())
 	end)
+	net.Receive("gred_net_artisweps_singleplayer",function()
+		local self = net.ReadEntity()
+		if !IsValid(self) then return end
+		self:CreateMenu()
+	end)
 else
 	gred.ActiveArtilleryStrikes = {}
+	util.AddNetworkString("gred_net_artisweps_singleplayer")
 	util.AddNetworkString("gred_net_artisweps_callin")
 	util.AddNetworkString("gred_net_artiplaysound")
 	resource.AddWorkshop(1529340885) -- SWEPs

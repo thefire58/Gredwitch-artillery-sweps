@@ -579,6 +579,7 @@ local pairs						= pairs
 local IsValid					= IsValid
 local CLIENT					= CLIENT
 local SERVER					= SERVER
+local SINGLEPLAYER				= game.SinglePlayer()
 
 function SWEP:Deploy()
 	self.Weapon:SendWeaponAnim(ACT_VM_DRAW)
@@ -787,116 +788,124 @@ function SWEP:PrimaryAttack()
 	self.Primary.NextShot = ct + self.Primary.FireRate
 	
 	if CLIENT then
-		if IsValid(self.Menu) then self.Menu:Close() end
-		local X = ScrW()*0.45
-		local Y = ScrH()*0.75
-		local DFrame = vgui.Create("DFrame")
-		DFrame:SetSize(X,Y)
-		DFrame:Center()
-		DFrame:MakePopup()
-		DFrame:SetAlpha(0)
-		DFrame:AlphaTo(255,0.3)
-		DFrame:ShowCloseButton(false)
-		DFrame:SetTitle("")
-		DFrame.Close = function(DFrame)
-			if DFrame.IsClosing then return end
-			DFrame.IsClosing = true
-			DFrame:AlphaTo(0,0.1,0,function(tab,DFrame)
-				DFrame:Remove()
-			end)
-		end
-		DFrame.Paint = function(DFrame,x,y)
-			surface.SetDrawColor(COLOR_BLACK)
-			surface.DrawRect(0,Y*0.391,x,y*0.01)
-			surface.DrawRect(0,Y*0.6,x,y*0.01)
-			surface.DrawRect(x*0.391,0,x*0.01,y)
-			surface.DrawRect(x*0.6,0,x*0.01,y)
-			
-			surface.SetDrawColor(COLOR_WHITE)
-			surface.DrawRect(0,Y*0.393,x,y*0.006)
-			surface.DrawRect(0,Y*0.603,x,y*0.006)
-			surface.DrawRect(x*0.393,0,x*0.006,y)
-			surface.DrawRect(x*0.602,0,x*0.006,y)
-		end
-		self.Menu = DFrame
-		
-		local DButton = vgui.Create("DButton",DFrame)
-		local X_m,Y_m = X*0.5,Y*0.5
-		local x,y = X*0.2,Y*0.2
-		DButton:SetPos(X_m-x*0.5,Y_m-y*0.5)
-		DButton:SetSize(x,y)
-		DButton:SetText("Close")
-		DButton:SetTextColor(COLOR_BLACK)
-		DButton.Paint = function(DButton,x,y)
-			if DButton:IsHovered() then
-				surface.SetDrawColor(COLOR_WHITE_HOVERED)
-				surface.DrawRect(0,0,x,y)
-			end
-		end
-		DButton.DoClick = function(DButton)
-			DFrame:Close()
-		end
-		
-		local buttons = {}
-		local function AddButtons(tab,DFrame,X,Y,X_m,Y_m,x,y,INDEX)
-			for k,v in pairs(tab) do
-				local DButton = vgui.Create("DButton",DFrame)
-				X_m,Y_m = X*posX[k],Y*posY[k]
-				x,y = X*0.2,Y*0.2
-				DButton:SetPos(X_m-x*0.5,Y_m-y*0.5)
-				DButton:SetSize(x,y)
-				DButton:SetText(v.name)
-				DButton:SetTextColor(COLOR_BLACK)
-				DButton:SetAlpha(0)
-				DButton:AlphaTo(255,0.2)
-				DButton:SetToolTip(v.name)
-				DButton.Paint = function(DButton,x,y)
-					if DButton:IsHovered() then
-						surface.SetDrawColor(COLOR_WHITE_HOVERED)
-						surface.DrawRect(0,0,x,y)
-					end
-				end
-				if v.choices or v.less then
-					DButton.DoClick = function(DButton)
-						for _,b in pairs(buttons) do
-							if IsValid(b) then 
-								b:AlphaTo(0,0.2,0,function()
-									b:Remove()
-								end)
-							end
-						end
-						buttons = {}
-						if v.less then
-							table.remove(INDEX,#INDEX)
-							table.remove(INDEX,#INDEX)
-							tab = self.Choices
-							for k,v in pairs(INDEX) do
-								tab = tab[v]
-							end
-							AddButtons(tab,DFrame,X,Y,X_m,Y_m,x,y,INDEX)
-						else
-							table.insert(INDEX,k)
-							table.insert(INDEX,"choices")
-							AddButtons(v.choices,DFrame,X,Y,X_m,Y_m,x,y,INDEX)
-						end
-					end
-				else
-					DButton.DoClick = function(DButton)
-						if !v.Decor then
-							DFrame:Close()
-							table.insert(INDEX,k)
-							net.Start("gred_net_artisweps_callin")
-								net.WriteEntity(self)
-								net.WriteTable(INDEX)
-							net.SendToServer()
-						end
-					end
-				end
-				buttons[k] = DButton
-			end
-		end
-		AddButtons(self.Choices,DFrame,X,Y,X_m,Y_m,x,y,{})
+		self:CreateMenu()
+	elseif SINGLEPLAYER then
+		net.Start("gred_net_artisweps_singleplayer")
+			net.WriteEntity(self)
+		net.Send(self.Owner)
 	end
+end
+
+function SWEP:CreateMenu()
+	if IsValid(self.Menu) then self.Menu:Close() end
+	local X = ScrW()*0.45
+	local Y = ScrH()*0.75
+	local DFrame = vgui.Create("DFrame")
+	DFrame:SetSize(X,Y)
+	DFrame:Center()
+	DFrame:MakePopup()
+	DFrame:SetAlpha(0)
+	DFrame:AlphaTo(255,0.3)
+	DFrame:ShowCloseButton(false)
+	DFrame:SetTitle("")
+	DFrame.Close = function(DFrame)
+		if DFrame.IsClosing then return end
+		DFrame.IsClosing = true
+		DFrame:AlphaTo(0,0.1,0,function(tab,DFrame)
+			DFrame:Remove()
+		end)
+	end
+	DFrame.Paint = function(DFrame,x,y)
+		surface.SetDrawColor(COLOR_BLACK)
+		surface.DrawRect(0,Y*0.391,x,y*0.01)
+		surface.DrawRect(0,Y*0.6,x,y*0.01)
+		surface.DrawRect(x*0.391,0,x*0.01,y)
+		surface.DrawRect(x*0.6,0,x*0.01,y)
+		
+		surface.SetDrawColor(COLOR_WHITE)
+		surface.DrawRect(0,Y*0.393,x,y*0.006)
+		surface.DrawRect(0,Y*0.603,x,y*0.006)
+		surface.DrawRect(x*0.393,0,x*0.006,y)
+		surface.DrawRect(x*0.602,0,x*0.006,y)
+	end
+	self.Menu = DFrame
+	
+	local DButton = vgui.Create("DButton",DFrame)
+	local X_m,Y_m = X*0.5,Y*0.5
+	local x,y = X*0.2,Y*0.2
+	DButton:SetPos(X_m-x*0.5,Y_m-y*0.5)
+	DButton:SetSize(x,y)
+	DButton:SetText("Close")
+	DButton:SetTextColor(COLOR_BLACK)
+	DButton.Paint = function(DButton,x,y)
+		if DButton:IsHovered() then
+			surface.SetDrawColor(COLOR_WHITE_HOVERED)
+			surface.DrawRect(0,0,x,y)
+		end
+	end
+	DButton.DoClick = function(DButton)
+		DFrame:Close()
+	end
+	
+	local buttons = {}
+	local function AddButtons(tab,DFrame,X,Y,X_m,Y_m,x,y,INDEX)
+		for k,v in pairs(tab) do
+			local DButton = vgui.Create("DButton",DFrame)
+			X_m,Y_m = X*posX[k],Y*posY[k]
+			x,y = X*0.2,Y*0.2
+			DButton:SetPos(X_m-x*0.5,Y_m-y*0.5)
+			DButton:SetSize(x,y)
+			DButton:SetText(v.name)
+			DButton:SetTextColor(COLOR_BLACK)
+			DButton:SetAlpha(0)
+			DButton:AlphaTo(255,0.2)
+			DButton:SetToolTip(v.name)
+			DButton.Paint = function(DButton,x,y)
+				if DButton:IsHovered() then
+					surface.SetDrawColor(COLOR_WHITE_HOVERED)
+					surface.DrawRect(0,0,x,y)
+				end
+			end
+			if v.choices or v.less then
+				DButton.DoClick = function(DButton)
+					for _,b in pairs(buttons) do
+						if IsValid(b) then 
+							b:AlphaTo(0,0.2,0,function()
+								b:Remove()
+							end)
+						end
+					end
+					buttons = {}
+					if v.less then
+						table.remove(INDEX,#INDEX)
+						table.remove(INDEX,#INDEX)
+						tab = self.Choices
+						for k,v in pairs(INDEX) do
+							tab = tab[v]
+						end
+						AddButtons(tab,DFrame,X,Y,X_m,Y_m,x,y,INDEX)
+					else
+						table.insert(INDEX,k)
+						table.insert(INDEX,"choices")
+						AddButtons(v.choices,DFrame,X,Y,X_m,Y_m,x,y,INDEX)
+					end
+				end
+			else
+				DButton.DoClick = function(DButton)
+					if !v.Decor then
+						DFrame:Close()
+						table.insert(INDEX,k)
+						net.Start("gred_net_artisweps_callin")
+							net.WriteEntity(self)
+							net.WriteTable(INDEX)
+						net.SendToServer()
+					end
+				end
+			end
+			buttons[k] = DButton
+		end
+	end
+	AddButtons(self.Choices,DFrame,X,Y,X_m,Y_m,x,y,{})
 end
 
 function SWEP:CanSecondaryAttack(ct)
