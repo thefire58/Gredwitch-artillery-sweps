@@ -43,7 +43,7 @@ function SWEP:InitChoices()
 			sound = "VO_WW2_ALLIED_ARTILLERY_SMOKE",
 			func = function(ply,tr)
 				timer.Simple(5,function()
-					gred.STRIKE.ARTILLERY(ply,tr,"MORTAR","MORTAR",math.random(12,16),120,"HE",900)
+					gred.STRIKE.ARTILLERY(ply,tr,"MORTAR","MORTAR",math.random(12,16),120,"Smoke",900)
 				end)
 			end
 		},
