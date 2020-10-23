@@ -4,8 +4,8 @@ AddCSLuaFile()
 gred = gred or {}
 gred.CVars = gred.CVars or {}
 
-hook.Add("EntityTakeDamage","gred_getlastdmg",function(target,dmg)
-	target.LastHit = CurTime()
+hook.Add("PlayerHurt","gred_getlastdmg",function(ply)
+	ply.LastHit = CurTime()
 end)
 
 -- hook.Add("PlayerDeath","gred_death_nonsilent",function(ply,inflictor,attacker)
@@ -24,36 +24,76 @@ gred.AddonList = gred.AddonList or {}
 table.insert(gred.AddonList,1131455085) -- Base
 	
 if CLIENT then
-	CreateConVar("gred_cl_artisweps_enable_subtitles"	,  "1"  , { FCVAR_USERINFO, FCVAR_ARCHIVE }) -- Not using CreateClientConvar because I'm gonna use player:GetInfo() with it
+	gred.CVars["gred_cl_artisweps_enable_subtitles"] = CreateConVar("gred_cl_artisweps_enable_subtitles"	,  "1"  , { FCVAR_USERINFO, FCVAR_ARCHIVE })
+	
 	language.Add("allied_radiobattery", "Allied radio battery")
 	language.Add("axis_radiobattery", "Axis radio battery")
 	
-	local function gred_settings_artisweps(CPanel)
-		CPanel:ClearControls()
-		Created = true;
-		if not game.IsDedicated() then
-			CPanel:AddControl( "CheckBox", { Label = "Should there be aircrafts flying over the target?", Command = "gred_sv_artisweps_aircrafts" } );
+	local ArtilleryMaterial = Material("gredwitch/artilleryicon.png")
+	
+	hook.Add("GredOptionsAddLateralMenuOption","AddArtillery",function(DFrame,DPanel,DScrollPanel,X,Y,X_DPanel,y_DPanel)
+		local CreateOptions				= gred.Menu.CreateOptions
+		local CreateCheckBoxPanel   	= gred.Menu.CreateCheckBoxPanel
+		local CreateSliderPanel     	= gred.Menu.CreateSliderPanel
+		local DrawEmptyRect         	= gred.Menu.DrawEmptyRect
+		local CreateBindPanel       	= gred.Menu.CreateBindPanel
+		local COL_WHITE					= gred.Menu.COL_WHITE					
+		local COL_GREY					= gred.Menu.COL_GREY					
+		local COL_LIGHT_GREY			= gred.Menu.COL_LIGHT_GREY			
+		local COL_LIGHT_GREY1			= gred.Menu.COL_LIGHT_GREY1			
+		local COL_RED					= gred.Menu.COL_RED					
+		local COL_GREEN					= gred.Menu.COL_GREEN					
+		local COL_DARK_GREY 			= gred.Menu.COL_DARK_GREY 			
+		local COL_DARK_GREY1 			= gred.Menu.COL_DARK_GREY1 			
+		local COL_BLUE_HIGHLIGHT		= gred.Menu.COL_BLUE_HIGHLIGHT		
+		local COL_DARK_BLUE_HIGHLIGHT	= gred.Menu.COL_DARK_BLUE_HIGHLIGHT
+		local COL_TRANSPARENT_GREY 		= gred.Menu.COL_TRANSPARENT_GREY
+		
+		local DButton = DScrollPanel:Add("DButton")
+		DButton:SetText("")
+		DButton:Dock(TOP)
+		DButton:DockMargin(0,0,0,10)
+		DButton:SetSize(X_DPanel,y_DPanel*0.15)
+		DButton.Paint = function(DButton,w,h)
+			local col = DButton:IsHovered() and COL_BLUE_HIGHLIGHT or COL_WHITE
+			surface.SetDrawColor(col.r,col.g,col.b,col.a)
+			DrawEmptyRect(0,0,w,h,2,2,0)
+			surface.SetMaterial(ArtilleryMaterial)
+			local H = h - 24
+			surface.DrawTexturedRect((w - H)*0.5,0,H,H)
 			
-			CPanel:AddControl( "CheckBox", { Label = "Should the aircrafts be skybox-sized?", Command = "gred_sv_artisweps_skybox_mdls" } );
-			
-			CPanel:AddControl( "CheckBox", { Label = "Enable the old spam mode?", Command = "gred_sv_artisweps_spam" } );
-			
-			CPanel:AddControl( "CheckBox", { Label = "Should the support aircrafts shoot at players in the same team than the caller?", Command = "gred_sv_artisweps_helisupport_shootateveryone" } );
+			draw.DrawText("ARTILLERY SWEPS OPTIONS","Trebuchet24",w*0.5,h-24,col,TEXT_ALIGN_CENTER)
+		end
+		DButton.DoClick = function()
+			DFrame:SelectLateralMenuOption("ARTILLERY SWEPS OPTIONS")
+			DPanel.ToggleButton:DoClick(true)
 		end
 		
-		CPanel:AddControl( "CheckBox", { Label = "Enable subtitles?", Command = "gred_cl_artisweps_enable_subtitles" } );
-	end
-
-	hook.Add( "PopulateToolMenu", "gred_menu_arti", function()
-		spawnmenu.AddToolMenuOption("Options",					-- Tab
-									"Gredwitch's Stuff",		-- Sub-tab
-									"gred_settings_artisweps",	-- Identifier
-									"Artillery SWEPs",			-- Name of the sub-sub-tab
-									"",							-- Command
-									"",							-- Config (deprecated)
-									gred_settings_artisweps		-- Function
-		)
+		DFrame.LateralOptionList["ARTILLERY SWEPS OPTIONS"] = function(DFrame,DPanel,X,Y)
+			CreateOptions(DFrame,DPanel,X,Y,{
+				["CLIENT"] = {
+					function(DFrame,DPanel,DScrollPanel,Panel,x,y)
+						CreateCheckBoxPanel(DFrame,DPanel,DScrollPanel,Panel,x,y,"gred_cl_artisweps_enable_subtitles","Subtitles","",false)
+					end,
+				},
+				["SERVER"] = {
+					function(DFrame,DPanel,DScrollPanel,Panel,x,y)
+						CreateCheckBoxPanel(DFrame,DPanel,DScrollPanel,Panel,x,y,"gred_sv_artisweps_aircrafts","Aircraft flyovers","",true)
+					end,
+					function(DFrame,DPanel,DScrollPanel,Panel,x,y)
+						CreateCheckBoxPanel(DFrame,DPanel,DScrollPanel,Panel,x,y,"gred_sv_artisweps_skybox_mdls","Skybox sized aircraft models","Scales the aircraft models to 1/16",true)
+					end,
+					function(DFrame,DPanel,DScrollPanel,Panel,x,y)
+						CreateCheckBoxPanel(DFrame,DPanel,DScrollPanel,Panel,x,y,"gred_sv_artisweps_spam","Spam mode","Allows player to call in artillery even if the voice lines aren't finished",true)
+					end,
+					-- function(DFrame,DPanel,DScrollPanel,Panel,x,y)
+						-- CreateCheckBoxPanel(DFrame,DPanel,DScrollPanel,Panel,x,y,"gred_sv_artisweps_helisupport_shootateveryone","Support aircraft shoots everyone","Makes support aircrafts shoot everyone, even the caller",true)
+					-- end,
+				}
+			})
+		end
 	end)
+
 	
 	net.Receive("gred_net_artiplaysound",function()
 		surface.PlaySound(net.ReadString())
@@ -68,7 +108,7 @@ else
 	util.AddNetworkString("gred_net_artisweps_singleplayer")
 	util.AddNetworkString("gred_net_artisweps_callin")
 	util.AddNetworkString("gred_net_artiplaysound")
-	resource.AddWorkshop(1529340885) -- SWEPs
+	
 	net.Receive("gred_net_artisweps_callin",function(len,ply)
 		local self = net.ReadEntity()
 		local index = net.ReadTable()
@@ -116,6 +156,7 @@ else
 			"artillery/flyby/rocket_artillery_strike_incoming_04.wav",
 		},
 	}
+	
 	local FIRE_SOUNDS = {
 		["ARTILLERY"] = {
 			"artillery/far/distant_artillery_fire_01.wav",
@@ -144,7 +185,85 @@ else
 		}
 		
 	}
+	
 	local reachSky = Vector(0,0,9999999999)
+	
+	local function CreateArti(ply,tr,FIRE_TABLE,WHISTLE_TABLE,caliber,shelltype,Spread,STR)
+		net.Start("gred_net_artiplaysound")
+			net.WriteString(table.Random(FIRE_TABLE))
+		net.Broadcast()
+		
+		if not table.HasValue(gred.ActiveArtilleryStrikes,STR) then return end
+		
+		timer.Simple(math.random(2,3),function()
+			if not table.HasValue(gred.ActiveArtilleryStrikes,STR) then return end
+			
+			local BPos = tr.HitPos + Vector(math.random(-Spread,Spread),math.random(-Spread,Spread),-1)
+			if !util.IsInWorld(BPos) then
+				BPos = tr.HitPos
+			end
+			-- if !util.IsInWorld(BPos) then return end
+			
+			local dist = math.abs(util.QuickTrace(BPos,BPos - reachSky).HitPos.z - BPos.z)
+			
+			----------------------
+			
+			local snd = table.Random(WHISTLE_TABLE)
+			local sndDuration = SoundDuration(snd)
+			
+			timer.Simple(4,function()
+				if not table.HasValue(gred.ActiveArtilleryStrikes,STR) then return end
+				
+				local time = (dist / -1000) + (sndDuration - 0.2) -- Calculates when to play the whistle sound
+				
+				if time < 0 then
+					local b = gred.CreateShell(BPos,Angle(90),ply,{},caliber,shelltype,100,7,"white",dmg)
+					local phys = b:GetPhysicsObject()
+					
+					if IsValid(phys) then
+						phys:EnableDrag(false)
+					end
+					
+					b:Arm()
+					b:SetBodygroup(0,1)
+					
+					b.PhysicsUpdate = function(data,phys)
+						phys:SetVelocityInstantaneous(Vector(0,0,-1000))
+					end
+					
+					timer.Simple(-time,function()
+						if !IsValid(b) then return end
+						b:EmitSound(snd, 140, 100, 1)
+					end)
+				else
+					local p = ents.Create("prop_dynamic")
+					p:SetModel("models/hunter/blocks/cube025x025x025.mdl")
+					p:SetPos(BPos)
+					p:Spawn()
+					p:SetRenderMode(RENDERMODE_TRANSALPHA)
+					p:SetColor(255,255,255,0)
+					p:EmitSound(snd,140,100,1)
+					p:Remove()
+					
+					timer.Simple(time,function()
+						local b = gred.CreateShell(BPos,Angle(90),ply,{},caliber,shelltype,100,7,"white",dmg)
+						b:Arm()
+						b:SetBodygroup(0,1)
+						
+						local phys = b:GetPhysicsObject()
+						
+						if IsValid(phys) then
+							phys:EnableDrag(false)
+						end
+						
+						b.PhysicsUpdate = function(data,phys)
+							phys:SetVelocityInstantaneous(Vector(0,0,-1000))
+						end
+					end)
+				end
+			end)
+		end)
+	end
 	
 	local function CreatePlane(MODEL,MODEL_SPAWN_AT_HITPOS,tr,ang,MODEL_ANIMRATE)
 		if !MODEL then return end
@@ -182,64 +301,6 @@ else
 	
 	gred.STRIKE = {
 		ARTILLERY = function(ply,tr,FIRE_TABLE,WHISTLE_TABLE,count,caliber,shelltype,Spread,dmg)
-			local function CreateArti(ply,tr,FIRE_TABLE,WHISTLE_TABLE,caliber,shelltype,Spread,STR)
-				net.Start("gred_net_artiplaysound")
-					net.WriteString(table.Random(FIRE_TABLE))
-				net.Broadcast()
-				
-				if not table.HasValue(gred.ActiveArtilleryStrikes,STR) then return end
-				
-				timer.Simple(math.random(2,3),function()
-					if not table.HasValue(gred.ActiveArtilleryStrikes,STR) then return end
-					
-					local BPos = tr.HitPos + Vector(math.random(-Spread,Spread),math.random(-Spread,Spread),-1) -- Creates our spawn position
-					if !util.IsInWorld(BPos) then
-						BPos = tr.HitPos
-					end
-					-- if !util.IsInWorld(BPos) then return end
-					
-					local HitBPos = Vector(0,0,util.QuickTrace(BPos,BPos - reachSky).HitPos.z) -- Defines the ground's pos
-					local zpos = Vector(0,0,BPos.z) -- The exact spawn altitude
-					local dist = HitBPos:Distance(zpos) -- Calculates the distance between our spawn altitude and the ground
-					
-					----------------------
-					
-					local snd = table.Random(WHISTLE_TABLE)
-					local sndDuration = SoundDuration(snd)
-					
-					timer.Simple(4,function()
-						if not table.HasValue(gred.ActiveArtilleryStrikes,STR) then return end
-						
-						local time = (dist/-1000)+(sndDuration-0.2) -- Calculates when to play the whistle sound
-						if time < 0 then
-							local b = gred.CreateShell(BPos,Angle(90),ply,{},caliber,shelltype,100,7,"white",dmg)
-							b:Arm()
-							timer.Simple(-time,function()
-								if !IsValid(b) then return end
-								b:EmitSound(snd, 140, 100, 1)
-							end)
-						else
-							local p = ents.Create("prop_dynamic")
-							p:SetModel("models/hunter/blocks/cube025x025x025.mdl")
-							p:SetPos(BPos)
-							p:Spawn()
-							p:SetRenderMode(RENDERMODE_TRANSALPHA)
-							p:SetColor(255,255,255,0)
-							p:EmitSound(snd,140,100,1)
-							p:Remove()
-							timer.Simple(time,function()
-								local b = gred.CreateShell(BPos,Angle(90),ply,{},caliber,shelltype,100,7,"white",dmg)
-								b:Arm()
-								b:SetBodygroup(0,1)
-								b.PhysicsUpdate = function(data,phys)
-									phys:SetVelocityInstantaneous(Vector(0,0,-1000))
-								end
-							end)
-						end
-					end)
-				end)
-			end
-			
 			local STR = "GRED_ARTILLERY_"..#gred.ActiveArtilleryStrikes+1
 			table.insert(gred.ActiveArtilleryStrikes,STR)
 			
@@ -334,17 +395,21 @@ else
 					net.WriteString(FLYBY_SOUND)
 				net.Broadcast()
 			end
-			local ang = (EyeTrace.StartPos - EyeTrace.HitPos):Angle()
-			ang.y = ang.y - 180
-			local GUN_POS = {}
 			
+			local ang = (EyeTrace.StartPos - EyeTrace.HitPos):Angle()
+			
+			ang.y = ang.y - 180
+			
+			local GUN_POS = {}
+			local Tab = {}
 			local MUL = 50
 			local dir = ang:Right()*MUL
+			
 			for i = 1,guncount do
 				GUN_POS[i] = GUN_POS[i-1] and GUN_POS[i-1] + dir or tr.HitPos - dir*guncount*0.5
 			end
 			
-			local STR = "GRED_ARTILLERY_"..#gred.ActiveArtilleryStrikes+1
+			local STR = "GRED_ARTILLERY_"..#gred.ActiveArtilleryStrikes + 1
 			table.insert(gred.ActiveArtilleryStrikes,STR)
 			
 			timer.Simple(MODEL_SPAWNDELAY,function()
@@ -356,20 +421,26 @@ else
 			local CUR_POS = 1
 			ang:Normalize()
 			ang.p = 110
+			
 			local approach = ((ang.p-ENDPITCH)*firerate)/firetime
 			
 			timer.Simple(DELAY,function()
 				if not table.HasValue(gred.ActiveArtilleryStrikes,STR) then return end
+				
 				if GUN_SOUND then
 					net.Start("gred_net_artiplaysound")
 						net.WriteString(GUN_SOUND)
 					net.Broadcast()
 				end
+				
 				timer.Create(STR,firerate,firetime/firerate,function()
+					PrintTable(GUN_POS)
 					CUR_POS = CUR_POS > #GUN_POS and 1 or CUR_POS
+					
 					ang.p = math.ApproachAngle(ang.p,ENDPITCH,approach)
-					local newAng = ang + Angle(math.Rand(Spread,-Spread),math.Rand(Spread,-Spread),math.Rand(Spread,-Spread))
-					gred.CreateBullet(ply,GUN_POS[CUR_POS],newAng,caliber,{},nil,false,"red",dmg)
+					
+					gred.CreateBullet(ply,GUN_POS[CUR_POS] + Vector(),ang + Angle(math.Rand(Spread,-Spread),math.Rand(Spread,-Spread),math.Rand(Spread,-Spread)),caliber,Tab,nil,false,"red",dmg)
+					
 					CUR_POS = CUR_POS + 1
 				end)
 			end)
